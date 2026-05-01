@@ -13,6 +13,10 @@ SQL.config = SQL.config or {
 }
 
 local function boolConvar(name, default)
+    if type(GetConvar) ~= "function" then
+        return default
+    end
+
     local value = string.lower(tostring(GetConvar(name, default and "true" or "false")))
     return value == "true" or value == "1" or value == "yes" or value == "on"
 end
@@ -63,7 +67,7 @@ local function queryAwait(method, query, params, context)
 end
 
 function SQL.ready()
-    return MySQL ~= nil and MySQL.query ~= nil
+    return MySQL ~= nil and MySQL.query ~= nil and MySQL.query.await ~= nil
 end
 
 function SQL.query(query, params)
@@ -210,6 +214,28 @@ local CREATE_TABLE_IF_NOT_EXISTS_PATTERN = CREATE_TABLE_PATTERN
     .. keywordPattern("EXISTS") .. "%s+"
 local INSERT_INTO_PATTERN = "^" .. keywordPattern("INSERT") .. "%s+" .. keywordPattern("INTO") .. "%s+"
 local INSERT_IGNORE_INTO_PATTERN = "^" .. keywordPattern("INSERT") .. "%s+" .. keywordPattern("IGNORE") .. "%s+" .. keywordPattern("INTO") .. "%s+"
+local ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_BACKTICK_PATTERN = "^"
+    .. keywordPattern("ALTER") .. "%s+"
+    .. keywordPattern("TABLE") .. "%s+"
+    .. "`([^`]+)`%s+"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("COLUMN") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "`([^`]+)`%s+"
+    .. "(.+)$"
+local ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_PLAIN_PATTERN = "^"
+    .. keywordPattern("ALTER") .. "%s+"
+    .. keywordPattern("TABLE") .. "%s+"
+    .. "([%w_%-]+)%s+"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("COLUMN") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "([%w_%-]+)%s+"
+    .. "(.+)$"
 
 local function normalizeCreateTable(statement)
     if statement:match(CREATE_TABLE_IF_NOT_EXISTS_PATTERN) then
@@ -323,10 +349,10 @@ local function columnExists(tableName, columnName)
 end
 
 local function executeAlterAddColumnIfNeeded(statement, context)
-    local tableName, columnName, definition = statement:match("^ALTER%s+TABLE%s+`([^`]+)`%s+ADD%s+COLUMN%s+IF%s+NOT%s+EXISTS%s+`([^`]+)`%s+(.+)$")
+    local tableName, columnName, definition = statement:match(ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_BACKTICK_PATTERN)
 
     if not tableName then
-        tableName, columnName, definition = statement:match("^ALTER%s+TABLE%s+([%w_%-]+)%s+ADD%s+COLUMN%s+IF%s+NOT%s+EXISTS%s+([%w_%-]+)%s+(.+)$")
+        tableName, columnName, definition = statement:match(ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_PLAIN_PATTERN)
     end
 
     if not tableName or not columnName or not definition then
