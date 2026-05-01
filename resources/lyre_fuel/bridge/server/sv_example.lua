@@ -135,3 +135,24 @@ function bridge:registerUsableItem(itemName, callback)
 
 	-- Edit this function to match your framework's functions
 end
+
+---getSocietyMoney
+---@description Gets the balance of a society/job account
+---@param jobName string The job name
+---@return number balance The society account balance
+---@public
+function bridge:getSocietyMoney(jobName)
+	-- Edit this function to match your framework's functions
+	return 0
+end
+
+---removeSocietyMoney
+---@description Removes money from a society/job account
+---@param jobName string The job name
+---@param amount number The amount to remove
+---@return boolean success Whether the operation was successful
+---@public
+function bridge:removeSocietyMoney(jobName, amount)
+	-- Edit this function to match your framework's functions
+	return false
+end
