@@ -40,7 +40,7 @@ end)
 
 CreateThread(function()
     Wait(0)
-    LyreBridge.log("info", "Core ready.", {
+    LyreBridge.log("debug", "Core ready.", {
         resource = GetCurrentResourceName(),
         version = LyreBridge.version,
         autoSql = LyreBridge.SQL.config.autoSql,
