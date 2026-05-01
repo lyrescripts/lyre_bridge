@@ -1,0 +1,9 @@
+-- Add custom server modules here without touching the locked core.
+-- Example:
+-- LyreBridge.registerModule("server", "myInventory", function()
+--     return {
+--         hasItem = function(source, item, amount)
+--             return false
+--         end,
+--     }
+-- end)
