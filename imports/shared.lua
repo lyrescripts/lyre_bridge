@@ -883,7 +883,7 @@ function Core.setupBridge(side, registry, config, options)
     end
 
     _G.bridge = selectedBridge
-    Core.log("info", "Bridge ready: " .. tostring(selectedName), context)
+    Core.log("debug", "Bridge ready: " .. tostring(selectedName), context)
 
     return true, selectedBridge
 end
