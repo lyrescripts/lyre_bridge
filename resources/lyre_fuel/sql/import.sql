@@ -67,6 +67,15 @@ CREATE TABLE IF NOT EXISTS `lyre_fuel-vehicle_filters` (
     PRIMARY KEY (`plate`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `lyre_fuel-vehicle_injectors` (
+    `plate` VARCHAR(32) NOT NULL,
+    `kilometers_since_replace` FLOAT DEFAULT 0,
+    `last_replaced_mileage` FLOAT DEFAULT NULL,
+    `last_replaced_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`plate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `lyre_fuel-vehicle_lpg` (
     `plate` VARCHAR(32) NOT NULL,
     `tank_size` FLOAT DEFAULT NULL,
