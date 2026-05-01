@@ -8,6 +8,7 @@ lua54("yes")
 
 escrow_ignore({
     "README.md",
+    "config.lua",
     "custom/**/*.lua",
     "resources/**/*.lua",
     "resources/**/*.sql",
@@ -15,6 +16,7 @@ escrow_ignore({
 })
 
 shared_scripts({
+    "config.lua",
     "imports/shared.lua",
 })
 
