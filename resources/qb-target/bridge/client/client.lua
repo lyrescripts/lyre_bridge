@@ -745,12 +745,18 @@ exports("SpawnPed", function(data)
             return nil
         end
 
-        RequestModel(pedData.model)
-        while not HasModelLoaded(pedData.model) do
+        local model = type(pedData.model) == "string" and GetHashKey(pedData.model) or pedData.model
+
+        RequestModel(model)
+        local modelTimeout = GetGameTimer() + 5000
+        while not HasModelLoaded(model) and GetGameTimer() < modelTimeout do
             Wait(0)
         end
 
-        local model = type(pedData.model) == "string" and GetHashKey(pedData.model) or pedData.model
+        if not HasModelLoaded(model) then
+            return nil
+        end
+
         local coords = pedData.coords
         local spawnedPed
 
@@ -774,10 +780,13 @@ exports("SpawnPed", function(data)
 
         if pedData.animDict and pedData.anim then
             RequestAnimDict(pedData.animDict)
-            while not HasAnimDictLoaded(pedData.animDict) do
+            local animTimeout = GetGameTimer() + 3000
+            while not HasAnimDictLoaded(pedData.animDict) and GetGameTimer() < animTimeout do
                 Wait(0)
             end
-            TaskPlayAnim(spawnedPed, pedData.animDict, pedData.anim, 8.0, 0, -1, pedData.flag or 1, 0, false, false, false)
+            if HasAnimDictLoaded(pedData.animDict) then
+                TaskPlayAnim(spawnedPed, pedData.animDict, pedData.anim, 8.0, 0, -1, pedData.flag or 1, 0, false, false, false)
+            end
         end
 
         if pedData.scenario then
