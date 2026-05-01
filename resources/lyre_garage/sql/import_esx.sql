@@ -129,32 +129,38 @@ CREATE TABLE IF NOT EXISTS `lyre_garage-garage_vehicles` (
 -- =====================================================
 
 SET @sql = (
-    SELECT CONCAT(
+    SELECT COALESCE(MAX(CONCAT(
         'ALTER TABLE `lyre_garage-shared_access` MODIFY `plate` VARCHAR(100) CHARACTER SET ',
         CHARACTER_SET_NAME,
         ' COLLATE ',
-        COLLATION_NAME
-    )
+        COLLATION_NAME,
+        ' NOT NULL'
+    )), 'SELECT 1')
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME = 'owned_vehicles'
       AND COLUMN_NAME = 'plate'
+      AND CHARACTER_SET_NAME IS NOT NULL
+      AND COLLATION_NAME IS NOT NULL
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql = (
-    SELECT CONCAT(
+    SELECT COALESCE(MAX(CONCAT(
         'ALTER TABLE `lyre_garage-shared_access` MODIFY `shared_with_identifier` VARCHAR(255) CHARACTER SET ',
         CHARACTER_SET_NAME,
         ' COLLATE ',
-        COLLATION_NAME
-    )
+        COLLATION_NAME,
+        ' NOT NULL'
+    )), 'SELECT 1')
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME = 'users'
       AND COLUMN_NAME = 'identifier'
+      AND CHARACTER_SET_NAME IS NOT NULL
+      AND COLLATION_NAME IS NOT NULL
 );
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -164,7 +170,7 @@ DEALLOCATE PREPARE stmt;
 -- DEFAULT CONFIGURATION ENTRIES
 -- =====================================================
 
-INSERT INTO `lyre_garage-garages` (`id`, `name`, `garage_type`, `vehicle_type`, `main_job`, `main_gang`, `manager_rank`, `job_garage_type`, `blip_sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `lyre_garage-garages` (`id`, `name`, `garage_type`, `vehicle_type`, `main_job`, `main_gang`, `manager_rank`, `job_garage_type`, `blip_sort`, `created_at`, `updated_at`) VALUES
 	('boat_impound_1', 'Boat Impound #1', 'impound', 'boat', NULL, NULL, NULL, NULL, 1, '2025-11-11 12:57:31', '2025-11-11 12:57:31'),
 	('helicopter_impound_1', 'Helicopter Impound #1', 'impound', 'heli', NULL, NULL, NULL, NULL, 1, '2025-11-11 12:53:42', '2025-11-11 12:53:42'),
 	('impound_1', 'Impound #1', 'impound', 'automobile', NULL, NULL, NULL, NULL, 1, '2025-11-11 12:41:40', '2025-11-11 12:41:40'),
@@ -189,7 +195,7 @@ INSERT INTO `lyre_garage-garages` (`id`, `name`, `garage_type`, `vehicle_type`, 
 	('public_plane_garage_1', 'Public Plane Garage #1', 'public', 'plane', NULL, NULL, NULL, NULL, 1, '2025-11-11 12:35:11', '2025-11-11 12:35:11'),
 	('public_plane_garage_2', 'Public Plane Garage #2', 'public', 'plane', NULL, NULL, NULL, NULL, 2, '2025-11-11 12:36:45', '2025-11-11 12:36:45');
 
-INSERT INTO `lyre_garage-garage_config` (`id`, `garage_id`, `config_key`, `config_value`) VALUES
+INSERT IGNORE INTO `lyre_garage-garage_config` (`id`, `garage_id`, `config_key`, `config_value`) VALUES
 	(1, 'public_garage_1', 'allowChangeLivery', 'false'),
 	(2, 'public_garage_1', 'selfVehicleLimit', 'true'),
 	(3, 'public_garage_1', 'showBlip', 'true'),
@@ -321,7 +327,7 @@ INSERT INTO `lyre_garage-garage_config` (`id`, `garage_id`, `config_key`, `confi
 	(159, 'boat_impound_1', 'takeOutPedModel', 's_m_y_xmech_01'),
 	(160, 'boat_impound_1', 'selfVehicleLimit', 'true');
 
-INSERT INTO `lyre_garage-garage_locations` (`id`, `garage_id`, `location_type`, `coords_x`, `coords_y`, `coords_z`, `coords_w`, `radius`, `sort_order`) VALUES
+INSERT IGNORE INTO `lyre_garage-garage_locations` (`id`, `garage_id`, `location_type`, `coords_x`, `coords_y`, `coords_z`, `coords_w`, `radius`, `sort_order`) VALUES
 	(1, 'public_garage_1', 'ped', 214.87, -806.45, 29.8087, 347.419, NULL, 0),
 	(2, 'public_garage_1', 'takeout', 205.921, -800.944, 30.0081, 249, 2, 1),
 	(3, 'public_garage_1', 'takeout', 206.943, -798.322, 29.9914, 249, 2, 2),
