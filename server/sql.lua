@@ -980,7 +980,7 @@ function SQL.ensureResourceSchema(resourceName, options)
         return licenseError
     end
 
-    Core.log(#summary.errors > 0 and "warn" or "info", "SQL schema prepared.", {
+    Core.log(#summary.errors > 0 and "warn" or "debug", "SQL schema prepared.", {
         resource = resourceName,
         framework = framework or "none",
         applied = summary.applied,
