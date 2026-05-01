@@ -421,6 +421,12 @@ function Core.applyModuleDefaults(bridge, context)
                 return module and module.ensure(resourceName, options)
             end
         end
+
+        if type(bridge.getVehicleMileage) ~= "function" then
+            function bridge:getVehicleMileage()
+                return nil, nil, nil
+            end
+        end
     end
 
     return bridge
