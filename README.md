@@ -5,6 +5,7 @@
 It provides:
 - deterministic bridge auto detection with aliases for ESX, QBCore, Qbox, standalone and example/custom bridges;
 - one central compatibility folder per Lyre resource;
+- central shared config for repeated options such as locale, bridge, update checks, background blur and interact system;
 - lazy modules that load only when a script asks for them;
 - wrapped bridge calls with structured errors instead of silent failures;
 - shared client modules for common features such as notifications, target, vehicle keys, fuel and progress;
@@ -73,6 +74,7 @@ Every `resources/<resource>/resource.lua` registers that resource in the core:
 - `requiresTables` lets optional SQL skip cleanly when a legacy table is missing.
 
 Every refactored resource depends on `lyre_bridge` and imports:
+- `@lyre_bridge/imports/shared.lua` in shared scripts, before the resource config;
 - `@lyre_bridge/imports/client.lua` on the client;
 - `@lyre_bridge/imports/server.lua` on the server;
 - `@lyre_bridge/resources/<resource>/bridge/client/*.lua` for client bridge adapters;
@@ -87,7 +89,22 @@ set lyre_bridge:debug false
 set lyre_bridge:failHard false
 set lyre_bridge:wrapCalls true
 set lyre_bridge:stateCacheMs 2500
+setr lyre_bridge:locale en
+setr lyre_bridge:bridge auto_detect
+setr lyre_bridge:checkForUpdates true
+setr lyre_bridge:backgroundBlur false
+setr lyre_bridge:interact marker
 ```
+
+Per-resource overrides can be set from the bridge namespace, for example:
+
+```cfg
+setr lyre_bridge:lyre_fuel:locale fr
+setr lyre_bridge:lyre_garage:interact target
+```
+
+Legacy convars such as `lyre_fuel:locale`, `lyre_garage:interact` and
+`lyre_illegalmissions:target` are still read for backwards compatibility.
 
 Manual SQL command:
 
