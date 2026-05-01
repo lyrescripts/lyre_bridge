@@ -3,7 +3,7 @@
 `lyre_bridge` is the shared compatibility core for the refactored Lyre resource copy.
 
 It provides:
-- deterministic bridge auto detection with aliases for ESX, QBCore, Qbox, standalone and example/custom bridges;
+- deterministic bridge auto detection with aliases for ESX, QBCore, standalone and example/custom bridges;
 - one central compatibility folder per Lyre resource;
 - central shared config for repeated options such as locale, bridge, update checks, background blur and interact system;
 - lazy modules that load only when a script asks for them;
@@ -72,6 +72,11 @@ Every `resources/<resource>/resource.lua` registers that resource in the core:
 - `sql.files` lists always-on SQL files;
 - `sql.frameworkFiles` lists framework-specific SQL files;
 - `requiresTables` lets optional SQL skip cleanly when a legacy table is missing.
+
+Qbox is still supported by resources that ship Qbox adapters, but it is not part
+of the global auto-detect order until every resource has matching Qbox bridge
+files. Resources such as `lyre_deathscreen` can opt in with
+`Config.bridgeAutoDetectOrder`.
 
 Every refactored resource depends on `lyre_bridge` and imports:
 - `@lyre_bridge/imports/shared.lua` in shared scripts, before the resource config;
