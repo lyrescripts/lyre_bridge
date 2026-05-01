@@ -236,6 +236,64 @@ local ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_PLAIN_PATTERN = "^"
     .. keywordPattern("EXISTS") .. "%s+"
     .. "([%w_%-]+)%s+"
     .. "(.+)$"
+local ALTER_TABLE_BACKTICK_PATTERN = "^"
+    .. keywordPattern("ALTER") .. "%s+"
+    .. keywordPattern("TABLE") .. "%s+"
+    .. "`([^`]+)`%s+"
+    .. "([%s%S]+)$"
+local ALTER_TABLE_PLAIN_PATTERN = "^"
+    .. keywordPattern("ALTER") .. "%s+"
+    .. keywordPattern("TABLE") .. "%s+"
+    .. "([%w_%-]+)%s+"
+    .. "([%s%S]+)$"
+local ADD_COLUMN_IF_NOT_EXISTS_BACKTICK_PATTERN = "^%s*"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("COLUMN") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "`([^`]+)`%s+"
+    .. "([%s%S]+)$"
+local ADD_COLUMN_IF_NOT_EXISTS_PLAIN_PATTERN = "^%s*"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("COLUMN") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "([%w_%-]+)%s+"
+    .. "([%s%S]+)$"
+local ADD_INDEX_IF_NOT_EXISTS_BACKTICK_PATTERN = "^%s*"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("INDEX") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "`([^`]+)`%s+"
+    .. "([%s%S]+)$"
+local ADD_INDEX_IF_NOT_EXISTS_PLAIN_PATTERN = "^%s*"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("INDEX") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "([%w_%-]+)%s+"
+    .. "([%s%S]+)$"
+local ADD_KEY_IF_NOT_EXISTS_BACKTICK_PATTERN = "^%s*"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("KEY") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "`([^`]+)`%s+"
+    .. "([%s%S]+)$"
+local ADD_KEY_IF_NOT_EXISTS_PLAIN_PATTERN = "^%s*"
+    .. keywordPattern("ADD") .. "%s+"
+    .. keywordPattern("KEY") .. "%s+"
+    .. keywordPattern("IF") .. "%s+"
+    .. keywordPattern("NOT") .. "%s+"
+    .. keywordPattern("EXISTS") .. "%s+"
+    .. "([%w_%-]+)%s+"
+    .. "([%s%S]+)$"
 
 local function normalizeCreateTable(statement)
     if statement:match(CREATE_TABLE_IF_NOT_EXISTS_PATTERN) then
@@ -348,27 +406,218 @@ local function columnExists(tableName, columnName)
     return ok and tonumber(count or 0) > 0
 end
 
-local function executeAlterAddColumnIfNeeded(statement, context)
-    local tableName, columnName, definition = statement:match(ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_BACKTICK_PATTERN)
+local function indexExists(tableName, indexName)
+    local ok, count = queryAwait("scalar", [[
+        SELECT COUNT(*)
+        FROM information_schema.statistics
+        WHERE table_schema = DATABASE()
+            AND table_name = ?
+            AND index_name = ?
+    ]], { tableName, indexName }, { operation = "index_exists", table = tableName, index = indexName })
 
-    if not tableName then
-        tableName, columnName, definition = statement:match(ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_PLAIN_PATTERN)
+    return ok and tonumber(count or 0) > 0
+end
+
+local function quoteIdentifier(value)
+    return "`" .. tostring(value):gsub("`", "``") .. "`"
+end
+
+local function splitAlterClauses(body)
+    local clauses = {}
+    local buffer = {}
+    local quote = nil
+    local depth = 0
+    local index = 1
+
+    while index <= #body do
+        local char = body:sub(index, index)
+        local nextChar = body:sub(index + 1, index + 1)
+
+        if quote then
+            buffer[#buffer + 1] = char
+
+            if char == "\\" and quote ~= "`" and nextChar ~= "" then
+                index = index + 1
+                buffer[#buffer + 1] = body:sub(index, index)
+            elseif char == quote then
+                if quote ~= "`" and nextChar == quote then
+                    index = index + 1
+                    buffer[#buffer + 1] = body:sub(index, index)
+                else
+                    quote = nil
+                end
+            end
+        else
+            if char == "'" or char == '"' or char == "`" then
+                quote = char
+            elseif char == "(" then
+                depth = depth + 1
+            elseif char == ")" and depth > 0 then
+                depth = depth - 1
+            end
+
+            if char == "," and depth == 0 and not quote then
+                local clause = trim(table.concat(buffer))
+                if clause ~= "" then
+                    clauses[#clauses + 1] = clause
+                end
+                buffer = {}
+            else
+                buffer[#buffer + 1] = char
+            end
+        end
+
+        index = index + 1
     end
 
-    if not tableName or not columnName or not definition then
+    local tail = trim(table.concat(buffer))
+    if tail ~= "" then
+        clauses[#clauses + 1] = tail
+    end
+
+    return clauses
+end
+
+local function matchAddColumnIfNotExists(clause)
+    local columnName, definition = clause:match(ADD_COLUMN_IF_NOT_EXISTS_BACKTICK_PATTERN)
+
+    if not columnName then
+        columnName, definition = clause:match(ADD_COLUMN_IF_NOT_EXISTS_PLAIN_PATTERN)
+    end
+
+    return columnName, definition
+end
+
+local function matchAddIndexIfNotExists(clause)
+    local indexName, definition = clause:match(ADD_INDEX_IF_NOT_EXISTS_BACKTICK_PATTERN)
+
+    if not indexName then
+        indexName, definition = clause:match(ADD_INDEX_IF_NOT_EXISTS_PLAIN_PATTERN)
+    end
+
+    if not indexName then
+        indexName, definition = clause:match(ADD_KEY_IF_NOT_EXISTS_BACKTICK_PATTERN)
+    end
+
+    if not indexName then
+        indexName, definition = clause:match(ADD_KEY_IF_NOT_EXISTS_PLAIN_PATTERN)
+    end
+
+    return indexName, definition
+end
+
+local function isGuardedAlterClause(clause)
+    local upper = string.upper(clause)
+
+    return upper:match("^%s*ADD%s+COLUMN%s+IF%s+NOT%s+EXISTS%s+")
+        or upper:match("^%s*ADD%s+INDEX%s+IF%s+NOT%s+EXISTS%s+")
+        or upper:match("^%s*ADD%s+KEY%s+IF%s+NOT%s+EXISTS%s+")
+end
+
+local function parseAlterTable(statement)
+    local tableName, body = statement:match(ALTER_TABLE_BACKTICK_PATTERN)
+
+    if not tableName then
+        tableName, body = statement:match(ALTER_TABLE_PLAIN_PATTERN)
+    end
+
+    return tableName, body
+end
+
+local function executeAlterIfNeeded(statement, context)
+    local legacyTableName, legacyColumnName, legacyDefinition = statement:match(ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_BACKTICK_PATTERN)
+
+    if not legacyTableName then
+        legacyTableName, legacyColumnName, legacyDefinition = statement:match(ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS_PLAIN_PATTERN)
+    end
+
+    local tableName, body = parseAlterTable(statement)
+
+    if not tableName or not body then
         return nil
     end
 
-    if columnExists(tableName, columnName) then
-        return true, "column_exists"
+    local clauses = splitAlterClauses(body)
+    local operations = {}
+    local hasGuardedClause = false
+
+    for _, clause in ipairs(clauses) do
+        local columnName, columnDefinition = matchAddColumnIfNotExists(clause)
+        local indexName, indexDefinition = matchAddIndexIfNotExists(clause)
+
+        if columnName and columnDefinition then
+            hasGuardedClause = true
+            operations[#operations + 1] = {
+                kind = "column",
+                name = columnName,
+                definition = trim(columnDefinition),
+            }
+        elseif indexName and indexDefinition then
+            hasGuardedClause = true
+            operations[#operations + 1] = {
+                kind = "index",
+                name = indexName,
+                definition = trim(indexDefinition),
+            }
+        elseif isGuardedAlterClause(clause) then
+            return false, Core.fail("unsupported_guarded_alter", "Unsupported guarded ALTER TABLE clause.", {
+                table = tableName,
+                clause = clause,
+                file = context and context.file,
+                resource = context and context.resource,
+            })
+        end
     end
 
-    local query = ("ALTER TABLE `%s` ADD COLUMN `%s` %s"):format(tableName, columnName, definition)
-    return queryAwait("query", query, {}, context)
+    if #operations == 0 then
+        return nil
+    end
+
+    if hasGuardedClause and #operations ~= #clauses then
+        return false, Core.fail("mixed_guarded_alter", "ALTER TABLE mixes guarded and unsupported clauses.", {
+            table = tableName,
+            file = context and context.file,
+            resource = context and context.resource,
+        })
+    end
+
+    for _, operation in ipairs(operations) do
+        if operation.kind == "column" then
+            if not columnExists(tableName, operation.name) then
+                local query = ("ALTER TABLE %s ADD COLUMN %s %s"):format(
+                    quoteIdentifier(tableName),
+                    quoteIdentifier(operation.name),
+                    operation.definition
+                )
+                local ok, response = queryAwait("query", query, {}, context)
+                if not ok then
+                    return false, response
+                end
+            end
+        elseif operation.kind == "index" then
+            if not indexExists(tableName, operation.name) then
+                local query = ("ALTER TABLE %s ADD INDEX %s %s"):format(
+                    quoteIdentifier(tableName),
+                    quoteIdentifier(operation.name),
+                    operation.definition
+                )
+                local ok, response = queryAwait("query", query, {}, context)
+                if not ok then
+                    return false, response
+                end
+            end
+        end
+    end
+
+    if legacyTableName and legacyColumnName and legacyDefinition then
+        return true, "column_checked"
+    end
+
+    return true, "alter_checked"
 end
 
 local function executeStatement(statement, context)
-    local alterOk, alterResponse = executeAlterAddColumnIfNeeded(statement, context)
+    local alterOk, alterResponse = executeAlterIfNeeded(statement, context)
     if alterOk ~= nil then
         return alterOk, alterResponse
     end
