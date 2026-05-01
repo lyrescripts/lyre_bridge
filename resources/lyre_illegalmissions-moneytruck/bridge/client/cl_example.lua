@@ -38,17 +38,31 @@ function bridge:placeExplosive(target)
 	local anim = "fidget_med_loop"
 
 	RequestAnimDict(dict)
+	local animAttempts = 0
 	repeat
 		Citizen.Wait(1)
-	until HasAnimDictLoaded(dict)
+		animAttempts = animAttempts + 1
+	until HasAnimDictLoaded(dict) or animAttempts >= 500
+
+	if not HasAnimDictLoaded(dict) then
+		return false
+	end
 
 	TaskPlayAnim(playerPed, dict, anim, 8.0, -8.0, -1, 49, 0, false, false, false)
 
 	local x, y, z = table.unpack(GetEntityCoords(playerPed))
 	RequestModel("prop_c4_final")
+	local modelAttempts = 0
 	repeat
 		Citizen.Wait(1)
-	until HasModelLoaded("prop_c4_final")
+		modelAttempts = modelAttempts + 1
+	until HasModelLoaded("prop_c4_final") or modelAttempts >= 500
+
+	if not HasModelLoaded("prop_c4_final") then
+		ClearPedTasks(playerPed)
+		return false
+	end
+
 	local prop = CreateObject(GetHashKey("prop_c4_final"), x, y, z + 0.2, true, true, true)
 	AttachEntityToEntity(prop, playerPed, GetPedBoneIndex(playerPed, 28422), 0.12, 0.0, 0.0, 100.0, 50.0, 60.0, true, true, false, true, 1, true)
 
@@ -117,9 +131,15 @@ function bridge:grabMoney(target, bagNumber, onCancel)
 	local anim = "grab"
 
 	RequestAnimDict(dict)
+	local animAttempts = 0
 	repeat
 		Citizen.Wait(1)
-	until HasAnimDictLoaded(dict)
+		animAttempts = animAttempts + 1
+	until HasAnimDictLoaded(dict) or animAttempts >= 500
+
+	if not HasAnimDictLoaded(dict) then
+		return
+	end
 
 	TaskPlayAnim(playerPed, dict, anim, 8.0, -8.0, -1, 49, 0, false, false, false)
 
