@@ -21,36 +21,6 @@ function bridge:init()
 	self.object = exports["es_extended"]:getSharedObject()
 end
 
----getPlayerFromId
----@param playerId number
----@return table|false
----@public
-function bridge:getPlayerFromId(playerId)
-	local xPlayer = self.object.GetPlayerFromId(playerId)
-
-	if not xPlayer then
-		return false
-	end
-
-	local player = {}
-
-	player.source = playerId
-
-	player.getIdentifier = function()
-		return xPlayer.identifier
-	end
-
-	player.getName = function()
-		return xPlayer.getName()
-	end
-
-	player.showNotification = function(message)
-		xPlayer.showNotification(message)
-	end
-
-	return player
-end
-
 ---getPlayerStats
 ---@param identifier string
 ---@return table
