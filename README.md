@@ -73,6 +73,25 @@ Every `resources/<resource>/resource.lua` registers that resource in the core:
 - `sql.frameworkFiles` lists framework-specific SQL files;
 - `requiresTables` lets optional SQL skip cleanly when a legacy table is missing.
 
+## Runtime flow
+
+1. `@lyre_bridge/imports/shared.lua` creates the local `LyreBridge` runtime inside the consuming resource, loads the central config, reads convars, and exposes the bridge registry helpers.
+2. The resource config is wrapped with `LyreBridge.createResourceConfig(...)`, so common values such as `locale`, `bridge`, `backgroundBlur` and `interactSystem` can come from global or per-resource convars.
+3. Framework adapter files populate `_G.bridge` with candidates such as `ESX`, `QBCORE`, `QBOX`, `STANDALONE` or `EXAMPLE`.
+4. The resource calls `setupClientBridge()` or `setupServerBridge()`. These wrappers delegate to `LyreBridge.setupClientResourceBridge(Config)` and `LyreBridge.setupServerResourceBridge(Config)`.
+5. `LyreBridge.setupBridge(...)` selects the configured bridge or auto-detects one, calls its `init()`, validates required methods, decorates the selected bridge with shared defaults, then replaces `_G.bridge` with the active adapter.
+
+Server startup also calls `LyreBridge.prepareResourceSql(...)` before bridge setup.
+That function resolves the SQL files registered for the resource, picks the framework-specific SQL branch when needed, applies migrations once per checksum, and records the result in `lyre_bridge_migrations`.
+
+## Scaling notes
+
+- Resource state checks are cached through `lyre_bridge:stateCacheMs` to avoid repeated `GetResourceState` calls from common modules.
+- Client modules are lazy: target, notifications, fuel, vehicle keys and progress are only created when a resource calls the matching bridge method.
+- SQL is idempotent: `CREATE TABLE` and `INSERT INTO` statements are normalized, guarded `ALTER TABLE ... ADD ... IF NOT EXISTS` clauses are handled safely, and optional SQL can be skipped when required legacy tables are missing.
+- Per-resource setup is idempotent, so repeated `setupClientBridge()` or `setupServerBridge()` calls return the already selected bridge instead of re-running SQL or framework init.
+- Keep resource adapters small. Put common behavior in `imports/client.lua`, `imports/server.lua` or shared modules; keep adapters for framework-specific resource contracts.
+
 Qbox is still supported by resources that ship Qbox adapters, but it is not part
 of the global auto-detect order until every resource has matching Qbox bridge
 files. Resources such as `lyre_deathscreen` can opt in with
@@ -106,6 +125,7 @@ Per-resource overrides can be set from the bridge namespace, for example:
 ```cfg
 setr lyre_bridge:lyre_fuel:locale fr
 setr lyre_bridge:lyre_garage:interact target
+setr lyre_bridge:lyre_garage:sqlStrict true
 ```
 
 Legacy convars such as `lyre_fuel:locale`, `lyre_garage:interact` and
