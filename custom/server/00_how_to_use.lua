@@ -1,0 +1,3 @@
+-- Custom server files are loaded after schemas, resources and core imports.
+-- Keep examples disabled here; copy the snippet you need into a new file.
+-- Use one small file per integration: SQL, inventory, money, licenses, jobs, etc.
