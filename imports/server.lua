@@ -9,8 +9,57 @@ end
 
 local Core = LyreBridge
 
+local function currentResourceName()
+    if type(GetCurrentResourceName) == "function" then
+        return GetCurrentResourceName()
+    end
+
+    return "unknown"
+end
+
+local function readBoolConvar(name, default)
+    if type(GetConvar) ~= "function" then
+        return default
+    end
+
+    local sentinel = "__lyre_bridge_unset__"
+    local value = GetConvar(name, sentinel)
+    if value == sentinel or value == "" then
+        return default
+    end
+
+    value = string.lower(tostring(value))
+    return value == "true" or value == "1" or value == "yes" or value == "on"
+end
+
+local function resourceSqlStrict(resourceName, default)
+    local names = {
+        "lyre_bridge:" .. resourceName .. ":sqlStrict",
+        resourceName .. ":sqlStrict",
+    }
+
+    local value = default
+    for _, name in ipairs(names) do
+        value = readBoolConvar(name, value)
+    end
+
+    return value
+end
+
+local function getRequiredFunctions(config, options)
+    if type(options.required) == "table" then
+        return options.required
+    end
+
+    if type(config) == "table" then
+        return config.bridgeRequiredServerFunctions
+    end
+
+    return nil
+end
+
 function Core.ensureResourceSql(resourceName, options)
-    resourceName = resourceName or GetCurrentResourceName()
+    resourceName = resourceName or currentResourceName()
     options = options or {}
 
     if not Core.isStarted("lyre_bridge") then
@@ -36,6 +85,68 @@ function Core.ensureResourceSql(resourceName, options)
             resource = resourceName,
             side = "server",
             code = result.code,
+        })
+        return false, result
+    end
+
+    return true, result
+end
+
+function Core.prepareResourceSql(resourceName, config, options)
+    options = options or {}
+    config = config or _G.Config or {}
+    resourceName = resourceName or options.resource or currentResourceName()
+
+    local sqlOptions = {}
+    if type(options.sqlOptions) == "table" then
+        for key, value in pairs(options.sqlOptions) do
+            sqlOptions[key] = value
+        end
+    end
+
+    sqlOptions.strict = resourceSqlStrict(resourceName, sqlOptions.strict == true or options.strict == true)
+    sqlOptions.bridge = options.bridge or sqlOptions.bridge or (type(config) == "table" and config.bridge)
+
+    return Core.ensureResourceSql(resourceName, sqlOptions)
+end
+
+function Core.setupServerResourceBridge(config, options)
+    options = options or {}
+    config = config or _G.Config or {}
+
+    local resourceName = options.resource or currentResourceName()
+    Core._serverBridgeSetup = Core._serverBridgeSetup or {}
+
+    if Core._serverBridgeSetup[resourceName] then
+        return true, _G.bridge
+    end
+
+    Core._serverBridgeSetup[resourceName] = true
+
+    local sqlSuccess, sqlResult = Core.prepareResourceSql(resourceName, config, options)
+    if not sqlSuccess then
+        Core._serverBridgeSetup[resourceName] = nil
+        Core.log("error", sqlResult and sqlResult.message or "Automatic SQL preparation failed.", {
+            resource = resourceName,
+            side = "server",
+        })
+        return false, sqlResult
+    end
+
+    local setupOptions = {}
+    for key, value in pairs(options) do
+        setupOptions[key] = value
+    end
+
+    setupOptions.resource = resourceName
+    setupOptions.required = getRequiredFunctions(config, options)
+
+    local success, result = Core.setupBridge("server", _G.bridge, config, setupOptions)
+    if not success then
+        Core._serverBridgeSetup[resourceName] = nil
+        Core.log("error", result and result.message or "Unable to setup the server bridge.", {
+            resource = resourceName,
+            side = "server",
         })
         return false, result
     end
