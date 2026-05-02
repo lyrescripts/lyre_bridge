@@ -122,22 +122,6 @@ function bridge:getPlayerFromId(playerId)
 	return player
 end
 
----getIdFromIdentifier
----@description Gets a player's server ID from their identifier
----@param identifier string The player's citizen ID
----@return number|boolean Server ID or false if not found
----@public
-function bridge:getIdFromIdentifier(identifier)
-	if not identifier then
-		return false
-	end
-	local player = self.object.Functions.GetPlayerByCitizenId(identifier)
-	if not player then
-		return false
-	end
-	return player.PlayerData.source
-end
-
 ---registerUsableItem
 ---@description Registers a usable item that triggers a callback when used
 ---@param itemName string The item name to register
