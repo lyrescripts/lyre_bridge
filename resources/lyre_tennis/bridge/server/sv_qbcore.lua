@@ -21,38 +21,6 @@ function bridge:init()
 	self.object = exports["qb-core"]:GetCoreObject()
 end
 
----getPlayerFromId
----@param playerId number
----@return table|false
----@public
-function bridge:getPlayerFromId(playerId)
-	local qbPlayer = self.object.Functions.GetPlayer(playerId)
-
-	if not qbPlayer then
-		return false
-	end
-
-	local player = {}
-
-	player.source = playerId
-
-	player.getIdentifier = function()
-		return qbPlayer.PlayerData.citizenid
-	end
-
-	player.getName = function()
-		local firstname = qbPlayer.PlayerData.charinfo.firstname or ""
-		local lastname = qbPlayer.PlayerData.charinfo.lastname or ""
-		return firstname .. " " .. lastname
-	end
-
-	player.showNotification = function(message)
-		TriggerClientEvent("QBCore:Notify", playerId, message or "", "success", 5000)
-	end
-
-	return player
-end
-
 ---getPlayerStats
 ---@param identifier string
 ---@return table
