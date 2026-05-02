@@ -41,6 +41,17 @@ local function pcallExport(resourceName, exportName, ...)
     return true, result
 end
 
+local function getNetworkEntity(netId)
+    if NetworkDoesEntityExistWithNetworkId(netId) then
+        local entity = NetworkGetEntityFromNetworkId(netId)
+        if entity and entity ~= 0 and DoesEntityExist(entity) then
+            return entity
+        end
+    end
+
+    return nil
+end
+
 local function waitForNetworkEntity(netId, timeoutMs)
     if type(netId) ~= "number" or netId == 0 then
         return nil
@@ -50,11 +61,13 @@ local function waitForNetworkEntity(netId, timeoutMs)
     timeoutMs = timeoutMs or 2500
 
     repeat
-        if NetworkDoesEntityExistWithNetworkId(netId) then
-            local entity = NetworkGetEntityFromNetworkId(netId)
-            if entity and entity ~= 0 and DoesEntityExist(entity) then
-                return entity
-            end
+        local entity = getNetworkEntity(netId)
+        if entity then
+            return entity
+        end
+
+        if timeoutMs <= 0 then
+            return nil
         end
 
         Wait(0)
@@ -90,6 +103,52 @@ local function toArray(value)
     end
 
     return { value }
+end
+
+local function getRequiredFunctions(config, options)
+    if type(options.required) == "table" then
+        return options.required
+    end
+
+    if type(config) == "table" then
+        return config.bridgeRequiredClientFunctions
+    end
+
+    return nil
+end
+
+function Core.setupClientResourceBridge(config, options)
+    options = options or {}
+    config = config or _G.Config or {}
+
+    local resourceName = options.resource or currentResourceName()
+    Core._clientBridgeSetup = Core._clientBridgeSetup or {}
+
+    if Core._clientBridgeSetup[resourceName] then
+        return true, _G.bridge
+    end
+
+    Core._clientBridgeSetup[resourceName] = true
+
+    local setupOptions = {}
+    for key, value in pairs(options) do
+        setupOptions[key] = value
+    end
+
+    setupOptions.resource = resourceName
+    setupOptions.required = getRequiredFunctions(config, options)
+
+    local success, result = Core.setupBridge("client", _G.bridge, config, setupOptions)
+    if not success then
+        Core._clientBridgeSetup[resourceName] = nil
+        Core.log("error", result and result.message or "Unable to setup the client bridge.", {
+            resource = resourceName,
+            side = "client",
+        })
+        return false, result
+    end
+
+    return true, result
 end
 
 Core.registerModule("client", "notifications", function()
