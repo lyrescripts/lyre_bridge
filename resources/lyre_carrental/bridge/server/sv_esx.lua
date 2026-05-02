@@ -20,35 +20,3 @@ local bridge = _G.bridge[this]
 function bridge:init()
 	self.object = exports["es_extended"]:getSharedObject()
 end
-
----getPlayerFromId
----@param playerId number
----@return table
----@public
-function bridge:getPlayerFromId(playerId)
-	local xPlayer = self.object.GetPlayerFromId(playerId)
-
-	if not xPlayer then
-		return false
-	end
-
-	local player = {}
-
-	player.showNotification = function(message)
-		xPlayer.showNotification(message)
-	end
-
-	player.getAccount = function(account)
-		return xPlayer.getAccount(account).money
-	end
-
-	player.removeAccountMoney = function(account, amount)
-		xPlayer.removeAccountMoney(account, amount)
-	end
-
-	player.addAccountMoney = function(account, amount)
-		xPlayer.addAccountMoney(account, amount)
-	end
-
-	return player
-end
