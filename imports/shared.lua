@@ -2,7 +2,7 @@ LyreBridge = LyreBridge or {}
 
 local Core = LyreBridge
 
-Core.version = Core.version or "1.0.0"
+Core.version = Core.version or "1.0.1"
 Core.config = Core.config or {}
 
 if not Core._bridgeConfigLoaded and type(LoadResourceFile) == "function" then
