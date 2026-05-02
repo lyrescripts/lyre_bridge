@@ -41,6 +41,26 @@ Resource adapters should only define:
 The target module supports `ox_target`, `qb-target` and `qtarget`.
 The vehicle key and fuel modules try known providers first, then fall back to native behavior where that makes sense.
 
+## Common server bridge contract
+
+Common server player behavior belongs in `imports/server.lua`.
+The server `players` module normalizes ESX, QBCore and Qbox player access and injects these defaults when an adapter does not define them:
+
+- `getPlayerFromId(playerId)`
+- `getIdFromIdentifier(identifier)`
+- `getPlayerFromIdentifier(identifier)`
+- `removePlayerMoney(playerId, account, amount)`
+- `getPlayerIdentifier(playerId)`
+- `getIdentifierFromSource(playerId)`
+- `getPlayerName(playerId)` returning `firstname, lastname`
+- `getPlayerDisplayName(playerId)`
+- `showNotification(playerId, message, type, duration)`
+
+The normalized player wrapper exposes `source`, `raw`, `getIdentifier()`, `getName()`, `getFirstName()`, `getLastName()`, `showNotification(...)`, `getAccount(account)`, `removeAccountMoney(account, amount)` and `addAccountMoney(account, amount)`.
+
+That means repeated payment and identity code should not be copied into new adapters.
+Adapters should keep only the parts that are genuinely resource-specific, such as licenses, inventory rules, admin groups, vehicle persistence, custom society accounting or offline SQL updates.
+
 Resource layout:
 
 ```text
@@ -72,6 +92,18 @@ Every `resources/<resource>/resource.lua` registers that resource in the core:
 - `sql.files` lists always-on SQL files;
 - `sql.frameworkFiles` lists framework-specific SQL files;
 - `requiresTables` lets optional SQL skip cleanly when a legacy table is missing.
+
+## Adding a resource
+
+1. Create `resources/<resource>/resource.lua` and register the resource with `LyreBridge.registerResource(...)`.
+2. Put common SQL in `resources/<resource>/sql/*.sql`, then reference it from `sql.files`.
+3. Put ESX/QBCore-specific SQL in separate files and reference them from `sql.frameworkFiles`.
+4. Put only framework-specific adapter code in `bridge/client/*.lua` and `bridge/server/*.lua`.
+5. In the resource `fxmanifest.lua`, import shared, client and server bridge files before the resource scripts that call `bridge`.
+6. In the resource, call `setupClientBridge()` and `setupServerBridge()` once during startup.
+
+New adapters should first rely on the defaults injected by `imports/client.lua` and `imports/server.lua`.
+Add adapter methods only when the resource needs a different behavior or a feature the central modules cannot safely guess.
 
 ## Runtime flow
 
