@@ -116,22 +116,6 @@ function bridge:getPlayerFromId(playerId)
 	return player
 end
 
----getIdFromIdentifier
----@description Gets a player's server ID from their identifier
----@param identifier string The player's identifier
----@return number|boolean Server ID or false if not found
----@public
-function bridge:getIdFromIdentifier(identifier)
-	if not identifier then
-		return false
-	end
-	local player = self.object.GetPlayerFromIdentifier(identifier)
-	if not player then
-		return false
-	end
-	return player.source
-end
-
 ---updateOfflinePlayerAccount
 ---@description Updates an offline player's account balance
 ---@param identifier string The player's identifier
