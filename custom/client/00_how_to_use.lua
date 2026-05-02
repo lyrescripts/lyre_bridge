@@ -1,0 +1,3 @@
+-- Custom client files are loaded after the bridge client imports.
+-- Keep examples disabled here; copy the snippet you need into a new file.
+-- Use small files by topic so future updates do not touch the core imports.
