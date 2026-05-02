@@ -3,7 +3,7 @@ game("gta5")
 
 author("Lyre Scripts")
 description("Shared modular bridge core, lazy compatibility modules, and automatic SQL migrations for Lyre resources.")
-version("1.0.1")
+version("1.0.2")
 lua54("yes")
 
 escrow_ignore({
