@@ -7,6 +7,7 @@ It provides:
 - one central compatibility folder per Lyre resource;
 - central shared config for repeated options such as locale, bridge, update checks, background blur and interact system;
 - lazy modules that load only when a script asks for them;
+- thin import entrypoints that load smaller shared, client and server modules;
 - wrapped bridge calls with structured errors instead of silent failures;
 - shared client modules for common features such as notifications, target, vehicle keys, fuel and progress;
 - automatic SQL preparation from the central resource registry;
@@ -66,9 +67,17 @@ Resource layout:
 ```text
 lyre_bridge/
   imports/
+    shared.lua
+    shared/*.lua
+    client.lua
+    client/*.lua
+    server.lua
+    server/*.lua
   server/
   schemas/
   custom/
+    client/*.lua
+    server/*.lua
   resources/
     lyre_garage/
       resource.lua
@@ -105,13 +114,23 @@ Every `resources/<resource>/resource.lua` registers that resource in the core:
 New adapters should first rely on the defaults injected by `imports/client.lua` and `imports/server.lua`.
 Add adapter methods only when the resource needs a different behavior or a feature the central modules cannot safely guess.
 
+## Custom examples
+
+The `custom/client` and `custom/server` folders contain small topic-based examples.
+They are intentionally disabled/commented so they can be loaded safely on every server.
+Use them as copy-paste templates for project-specific integrations such as notifications, targets, fuel, vehicle keys, progress, SQL wrappers, inventory, licenses, society accounts, offline accounts, usable items, callbacks and webhooks.
+
+Keep custom code in small files by topic.
+That makes updates safer because the core imports can change without overwriting project-specific integrations.
+
 ## Runtime flow
 
-1. `@lyre_bridge/imports/shared.lua` creates the local `LyreBridge` runtime inside the consuming resource, loads the central config, reads convars, and exposes the bridge registry helpers.
+1. `@lyre_bridge/imports/shared.lua` creates the local `LyreBridge` runtime inside the consuming resource, then loads the smaller files in `imports/shared/*.lua`.
 2. The resource config is wrapped with `LyreBridge.createResourceConfig(...)`, so common values such as `locale`, `bridge`, `backgroundBlur` and `interactSystem` can come from global or per-resource convars.
-3. Framework adapter files populate `_G.bridge` with candidates such as `ESX`, `QBCORE`, `QBOX`, `STANDALONE` or `EXAMPLE`.
-4. The resource calls `setupClientBridge()` or `setupServerBridge()`. These wrappers delegate to `LyreBridge.setupClientResourceBridge(Config)` and `LyreBridge.setupServerResourceBridge(Config)`.
-5. `LyreBridge.setupBridge(...)` selects the configured bridge or auto-detects one, calls its `init()`, validates required methods, decorates the selected bridge with shared defaults, then replaces `_G.bridge` with the active adapter.
+3. `@lyre_bridge/imports/client.lua` and `@lyre_bridge/imports/server.lua` load their own smaller modules from `imports/client/*.lua` and `imports/server/*.lua`.
+4. Framework adapter files populate `_G.bridge` with candidates such as `ESX`, `QBCORE`, `QBOX`, `STANDALONE` or `EXAMPLE`.
+5. The resource calls `setupClientBridge()` or `setupServerBridge()`. These wrappers delegate to `LyreBridge.setupClientResourceBridge(Config)` and `LyreBridge.setupServerResourceBridge(Config)`.
+6. `LyreBridge.setupBridge(...)` selects the configured bridge or auto-detects one, calls its `init()`, validates required methods, decorates the selected bridge with shared defaults, then replaces `_G.bridge` with the active adapter.
 
 Server startup also calls `LyreBridge.prepareResourceSql(...)` before bridge setup.
 That function resolves the SQL files registered for the resource, picks the framework-specific SQL branch when needed, applies migrations once per checksum, and records the result in `lyre_bridge_migrations`.
