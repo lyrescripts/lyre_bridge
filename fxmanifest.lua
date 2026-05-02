@@ -9,6 +9,7 @@ lua54("yes")
 escrow_ignore({
     "README.md",
     "config.lua",
+    "imports/**/*.lua",
     "custom/**/*.lua",
     "resources/**/*.lua",
     "resources/**/*.sql",
@@ -58,6 +59,7 @@ client_scripts({
 })
 
 files({
+    "imports/**/*.lua",
     "resources/**/*.lua",
     "resources/**/*.sql",
 })
