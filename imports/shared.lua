@@ -2,7 +2,7 @@ LyreBridge = LyreBridge or {}
 
 local Core = LyreBridge
 
-Core.version = Core.version or "1.0.1"
+Core.version = Core.version or "1.0.2"
 Core.config = Core.config or {}
 
 if not Core._bridgeConfigLoaded and type(LoadResourceFile) == "function" then
@@ -681,6 +681,69 @@ function Core.applyModuleDefaults(bridge, context)
             function bridge:ensureSql(resourceName, options)
                 local module = Core.getModule("server", "sql")
                 return module and module.ensure(resourceName, options)
+            end
+        end
+
+        if type(bridge.getPlayerFromId) ~= "function" then
+            function bridge:getPlayerFromId(playerId)
+                local module = Core.getModule("server", "players")
+                return module and module.getPlayerFromId(self, playerId)
+            end
+        end
+
+        if type(bridge.getIdFromIdentifier) ~= "function" then
+            function bridge:getIdFromIdentifier(identifier)
+                local module = Core.getModule("server", "players")
+                return module and module.getIdFromIdentifier(self, identifier)
+            end
+        end
+
+        if type(bridge.getPlayerFromIdentifier) ~= "function" then
+            function bridge:getPlayerFromIdentifier(identifier)
+                local module = Core.getModule("server", "players")
+                return module and module.getPlayerFromIdentifier(self, identifier)
+            end
+        end
+
+        if type(bridge.removePlayerMoney) ~= "function" then
+            function bridge:removePlayerMoney(playerId, account, amount)
+                local module = Core.getModule("server", "players")
+                return module and module.removePlayerMoney(self, playerId, account, amount)
+            end
+        end
+
+        if type(bridge.getPlayerIdentifier) ~= "function" then
+            function bridge:getPlayerIdentifier(playerId)
+                local module = Core.getModule("server", "players")
+                return module and module.getPlayerIdentifier(self, playerId)
+            end
+        end
+
+        if type(bridge.getIdentifierFromSource) ~= "function" then
+            function bridge:getIdentifierFromSource(playerId)
+                local module = Core.getModule("server", "players")
+                return module and module.getIdentifierFromSource(self, playerId)
+            end
+        end
+
+        if type(bridge.getPlayerName) ~= "function" then
+            function bridge:getPlayerName(playerId)
+                local module = Core.getModule("server", "players")
+                return module and module.getPlayerName(self, playerId)
+            end
+        end
+
+        if type(bridge.getPlayerDisplayName) ~= "function" then
+            function bridge:getPlayerDisplayName(playerId)
+                local module = Core.getModule("server", "players")
+                return module and module.getPlayerDisplayName(self, playerId)
+            end
+        end
+
+        if type(bridge.showNotification) ~= "function" then
+            function bridge:showNotification(playerId, message, notificationType, duration)
+                local module = Core.getModule("server", "players")
+                return module and module.showNotification(self, playerId, message, notificationType, duration)
             end
         end
 
