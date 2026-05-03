@@ -19,7 +19,7 @@ setDefault("defaultLocale", "en")
 setDefault("fallbackLocale", "en")
 
 -- [string] → The bridge to use for the framework detection.
--- Available options are "auto_detect", "esx" or "qb".
+-- Available options are "auto_detect", "esx", "qbcore", "qbox", "standalone" or "example".
 setDefault("bridge", "auto_detect")
 
 -- [boolean] → If you want the bridge to check for updates on start.
