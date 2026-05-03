@@ -132,27 +132,6 @@ end
 ---@return boolean Whether the player has the item
 ---@public
 function bridge:hasItem(item, amount)
-	amount = amount or 1
-
-	if GetResourceState("ox_inventory") == "started" then
-		local count = exports.ox_inventory:Search("count", item)
-		return (tonumber(count) or 0) >= amount
-	end
-
-	local playerData = self.object:GetPlayerData()
-	local items = playerData and playerData.items
-	if not items then
-		return false
-	end
-
-	for _, itemData in pairs(items) do
-		if itemData and itemData.name == item then
-			local count = itemData.count or itemData.amount or 0
-			if count >= amount then
-				return true
-			end
-		end
-	end
-
-	return false
+	local module = LyreBridge.getModule("client", "inventory")
+	return module and module.hasItem(self, item, amount) or false
 end

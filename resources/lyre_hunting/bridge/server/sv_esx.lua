@@ -61,25 +61,22 @@ function bridge:getPlayerFromId(playerId)
 	end
 
 	player.addItem = function(itemName, count, metadata)
-		if GetResourceState("ox_inventory") == "started"
-			or GetResourceState("qs-inventory") == "started" then
-			xPlayer.addInventoryItem(itemName, count, metadata)
-		else
+		if type(itemName) == "string" and itemName:sub(1, 7) == "weapon_" and xPlayer.addWeapon then
 			xPlayer.addWeapon(itemName, 100)
+		else
+			xPlayer.addInventoryItem(itemName, count, metadata)
 		end
 	end
 
 	player.addAmmo = function(ammoItem, weaponName, amount)
-		if GetResourceState("ox_inventory") == "started"
-			or GetResourceState("qs-inventory") == "started" then
-			xPlayer.addInventoryItem(ammoItem, amount)
-		else
+		if weaponName and xPlayer.addWeaponAmmo then
 			xPlayer.addWeaponAmmo(weaponName, amount)
+		else
+			xPlayer.addInventoryItem(ammoItem, amount)
 		end
 	end
 
 	player.canCarryItem = function(itemName, count)
-		-- ox_inventory and qs-inventory handle weight internally.
 		-- If canCarryItem is not available (vanilla ESX without weight), return true.
 		if xPlayer.canCarryItem then
 			return xPlayer.canCarryItem(itemName, count or 1)
@@ -109,4 +106,3 @@ function bridge:getPlayerFromId(playerId)
 
 	return player
 end
-

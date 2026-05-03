@@ -89,6 +89,13 @@ function Core.applyModuleDefaults(bridge, context)
             end
         end
 
+        if type(bridge.hasItem) ~= "function" then
+            function bridge:hasItem(itemName, amount)
+                local module = Core.getModule("client", "inventory")
+                return module and module.hasItem(self, itemName, amount) or false
+            end
+        end
+
         if type(bridge.sendDispatchAlert) ~= "function" then
             function bridge:sendDispatchAlert(payload, options)
                 local module = Core.getModule("client", "dispatch")

@@ -13,6 +13,7 @@ It provides:
 - a dedicated resource registry module with a runtime consistency check;
 - wrapped bridge calls with structured errors instead of silent failures;
 - shared client modules for common features such as notifications, target, vehicle keys, fuel and progress;
+- client inventory item checks for context/target visibility;
 - automatic SQL preparation from the central resource registry;
 - framework-specific SQL support with retro compatibility;
 - idempotent migration tracking in `lyre_bridge_migrations`;
@@ -35,6 +36,7 @@ Common client behavior belongs in `imports/client.lua`, not in every resource ad
 - `setFuel(vehicleOrNetId, fuel)`
 - `getFuel(vehicleOrNetId)`
 - `progress(options)` or `progress(duration, label, options)`
+- `hasItem(itemName, amount)`
 - `sendDispatchAlert(payload, options)`
 
 Resource adapters should only define:
@@ -63,6 +65,7 @@ The server `players` module normalizes ESX, QBCore and Qbox player access and in
 - `sendDispatchAlert(payload, options)`
 
 The normalized player wrapper exposes `source`, `raw`, `getIdentifier()`, `getName()`, `getFirstName()`, `getLastName()`, `showNotification(...)`, `getAccount(account)`, `removeAccountMoney(account, amount)` and `addAccountMoney(account, amount)`.
+The inventory provider module also normalizes `addItem(...)`, `removeItem(...)`, `getItemCount(...)`, `hasItem(...)`, `canCarryItem(...)`, `addAmmo(...)`, `setItemMetadata(...)` and `getItemBySlot(...)` unless an adapter explicitly opts into its own inventory implementation.
 
 That means repeated payment and identity code should not be copied into new adapters.
 Adapters should keep only the parts that are genuinely resource-specific, such as licenses, inventory rules, admin groups, vehicle persistence, custom society accounting or offline SQL updates.
@@ -81,6 +84,9 @@ lyre_bridge/
   server/
   schemas/
   custom/
+    client/*.lua
+    server/*.lua
+  examples/
     client/*.lua
     server/*.lua
   resources/
@@ -131,6 +137,7 @@ Provider integrations should live in topic folders, not inside the module core:
 
 ```text
 imports/client/fuel/providers/<provider>.lua
+imports/client/inventory/providers/<provider>.lua
 imports/client/vehicle_keys/providers/<provider>.lua
 imports/server/inventory/providers/<provider>.lua
 imports/server/usable_items/providers/<provider>.lua
@@ -195,8 +202,9 @@ keys, inventory, usable item, society, offline account, and dispatch calls.
 
 ## Custom examples
 
-The `custom/client` and `custom/server` folders contain small topic-based examples.
-They are intentionally disabled/commented so they can be loaded safely on every server.
+The `examples/client` and `examples/server` folders contain small topic-based examples.
+They are not loaded by the manifest. Copy an example into `custom/client` or `custom/server`
+only when that override should run on the server.
 Use them as copy-paste templates for project-specific integrations such as notifications, targets, fuel, vehicle keys, progress, SQL wrappers, inventory, licenses, society accounts, offline accounts, usable items, callbacks and webhooks.
 
 Keep custom code in small files by topic.

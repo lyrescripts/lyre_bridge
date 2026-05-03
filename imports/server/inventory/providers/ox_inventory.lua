@@ -5,6 +5,9 @@ LyreBridge.registerProvider("server", "inventory", {
     addItem = function(self, context)
         return true, exports.ox_inventory:AddItem(context.source, context.itemName, context.count, context.metadata) ~= false
     end,
+    addAmmo = function(self, context)
+        return true, exports.ox_inventory:AddItem(context.source, context.ammoItem or context.itemName, context.count) ~= false
+    end,
     removeItem = function(self, context)
         return true, exports.ox_inventory:RemoveItem(context.source, context.itemName, context.count, nil, context.slot) ~= false
     end,
@@ -25,6 +28,9 @@ LyreBridge.registerProvider("server", "inventory", {
 
         exports.ox_inventory:SetMetadata(context.source, context.slot, context.metadata)
         return true, true
+    end,
+    canCarryItem = function(self, context)
+        return true, exports.ox_inventory:CanCarryItem(context.source, context.itemName, context.count) ~= false
     end,
     supportsMetadata = function()
         return true, true

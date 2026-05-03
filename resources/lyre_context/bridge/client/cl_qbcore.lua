@@ -132,27 +132,6 @@ end
 ---@return boolean Whether the player has the item
 ---@public
 function bridge:hasItem(item, amount)
-	amount = amount or 1
-
-	local playerData = self.object.Functions.GetPlayerData()
-	if not playerData then
-		return false
-	end
-
-	local items = playerData.items
-	if not items then
-		return false
-	end
-
-	-- QBCore inventory is an array, need to search through it
-	for _, itemData in pairs(items) do
-		if itemData and itemData.name == item then
-			local count = itemData.count or 0
-			if count >= amount then
-				return true
-			end
-		end
-	end
-
-	return false
+	local module = LyreBridge.getModule("client", "inventory")
+	return module and module.hasItem(self, item, amount) or false
 end

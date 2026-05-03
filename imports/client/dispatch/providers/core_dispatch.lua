@@ -4,7 +4,10 @@ LyreBridge.registerProvider("client", "dispatch", {
     priority = 140,
     send = function(self, context)
         local payload = context.payload
-        local coords = payload.coordsTable
+        local coords = payload.coordsTable or payload.coords
+        if not coords then
+            return false
+        end
 
         for _, jobName in ipairs(payload.jobs or {}) do
             TriggerServerEvent(

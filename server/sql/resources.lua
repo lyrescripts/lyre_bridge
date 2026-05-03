@@ -288,7 +288,11 @@ local function applySqlEntry(resourceName, entry, options, summary)
         end
     end
 
-    Migrations.mark(migrationId, resourceName, hash, fileSummary.errors > 0 and "warning" or "applied", fileSummary.errors > 0 and "completed_with_warnings" or nil)
+    local marked, markError = Migrations.mark(migrationId, resourceName, hash, fileSummary.errors > 0 and "warning" or "applied", fileSummary.errors > 0 and "completed_with_warnings" or nil)
+    if not marked then
+        return false, markError
+    end
+
     return true
 end
 

@@ -11,6 +11,7 @@ escrow_ignore({
     "config.lua",
     "imports/**/*.lua",
     "custom/**/*.lua",
+    "examples/**/*.lua",
     "resources/**/*.lua",
     "resources/**/*.sql",
     "schemas/**/*.lua",

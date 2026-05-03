@@ -89,6 +89,34 @@ Core.registerModule("server", "inventory", function()
         return handled and result ~= false
     end
 
+    function module.hasItem(bridge, player, itemName, count)
+        return module.getItemCount(bridge, player, itemName) >= (tonumber(count) or 1)
+    end
+
+    function module.canCarryItem(bridge, player, itemName, count)
+        local handled, result = callProvider("canCarryItem", createContext(bridge, player, {
+            itemName = itemName,
+            count = tonumber(count) or 1,
+        }))
+
+        if not handled then
+            return true
+        end
+
+        return result ~= false
+    end
+
+    function module.addAmmo(bridge, player, ammoItem, weaponName, amount)
+        local handled, result = callProvider("addAmmo", createContext(bridge, player, {
+            itemName = ammoItem,
+            ammoItem = ammoItem,
+            weaponName = weaponName,
+            count = tonumber(amount) or 1,
+        }))
+
+        return handled and result ~= false
+    end
+
     function module.getItemBySlot(bridge, player, slot)
         local handled, result = callProvider("getItemBySlot", createContext(bridge, player, {
             slot = tonumber(slot),
@@ -111,31 +139,37 @@ Core.registerModule("server", "inventory", function()
             return player
         end
 
-        if type(player.addItem) ~= "function" then
+        local useAdapterInventory = bridge and bridge.__lyreUseAdapterInventory == true
+
+        if not useAdapterInventory then
             function player.addItem(itemName, count, metadata)
                 return module.addItem(bridge, player, itemName, count, metadata)
             end
-        end
 
-        if type(player.removeItem) ~= "function" then
             function player.removeItem(itemName, count, slot)
                 return module.removeItem(bridge, player, itemName, count, slot)
             end
-        end
 
-        if type(player.getItemCount) ~= "function" then
             function player.getItemCount(itemName)
                 return module.getItemCount(bridge, player, itemName)
             end
-        end
 
-        if type(player.setItemMetadata) ~= "function" then
+            function player.hasItem(itemName, count)
+                return module.hasItem(bridge, player, itemName, count)
+            end
+
+            function player.canCarryItem(itemName, count)
+                return module.canCarryItem(bridge, player, itemName, count)
+            end
+
+            function player.addAmmo(ammoItem, weaponName, amount)
+                return module.addAmmo(bridge, player, ammoItem, weaponName, amount)
+            end
+
             function player.setItemMetadata(itemName, slot, metadata)
                 return module.setItemMetadata(bridge, player, itemName, slot, metadata)
             end
-        end
 
-        if type(player.getItemBySlot) ~= "function" then
             function player.getItemBySlot(slot)
                 return module.getItemBySlot(bridge, player, slot)
             end

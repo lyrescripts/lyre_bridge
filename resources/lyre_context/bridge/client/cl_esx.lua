@@ -86,23 +86,6 @@ end
 ---@return boolean Whether the player has the item
 ---@public
 function bridge:hasItem(item, amount)
-	amount = amount or 1
-
-	local playerData = self.object.GetPlayerData()
-	if not playerData then
-		return false
-	end
-
-	local inventory = playerData.inventory
-	if not inventory then
-		return false
-	end
-
-	local itemData = inventory[item]
-	if not itemData then
-		return false
-	end
-
-	local count = itemData.count or 0
-	return count >= amount
+	local module = LyreBridge.getModule("client", "inventory")
+	return module and module.hasItem(self, item, amount) or false
 end

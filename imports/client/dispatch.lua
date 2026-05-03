@@ -5,6 +5,27 @@ local currentResourceName = internals.currentResourceName or Core.currentResourc
 Core.registerModule("client", "dispatch", function()
     local module = {}
 
+    local function normalizePayload(payload)
+        payload.jobs = payload.jobs or (payload.job and { payload.job }) or {}
+        if type(payload.jobs) == "string" then
+            payload.jobs = { payload.jobs }
+        end
+
+        payload.blip = payload.blip or {}
+        payload.blip.sprite = payload.blip.sprite or 161
+        payload.blip.color = payload.blip.color or payload.blip.colour or 1
+        payload.blip.scale = payload.blip.scale or 1.0
+        payload.blip.label = payload.blip.label or payload.blip.text or payload.title or "Dispatch"
+        payload.blip.duration = payload.blip.duration or payload.blip.time or 60000
+        payload.coordsTable = payload.coordsTable or payload.coords
+        payload.message = payload.message or payload.description or payload.title or "Dispatch alert"
+        payload.description = payload.description or payload.message
+        payload.code = payload.code or "DISPATCH"
+        payload.title = payload.title or payload.code
+
+        return payload
+    end
+
     local function isAutoProvider(providerName)
         return providerName == nil or providerName == "" or providerName == "auto_detect"
     end
@@ -59,7 +80,7 @@ Core.registerModule("client", "dispatch", function()
 
         local context = {
             resource = currentResourceName(),
-            payload = payload,
+            payload = normalizePayload(payload),
             options = options,
         }
 

@@ -112,46 +112,38 @@ end
 ---@return void
 ---@public
 function bridge:alertJob(jobName, coords, radius, title, description, teamMembers)
-	if GetResourceState("rcore_dispatch") == "started" then
-		local rcoredispatch = {
-			code = "10-64",
-			default_priority = "medium",
-			coords = coords,
-			job = jobName,
-			text = description,
-			type = "alerts",
-			blip_time = 5,
-			blip = {
-				sprite = 161,
-				colour = 1,
-				scale = 1.0,
-				text = title,
-				radius = radius or 50.0,
-			},
-		}
-		TriggerEvent("rcore_dispatch:server:sendAlert", rcoredispatch)
-	elseif GetResourceState("ps-dispatch") == "started" then
-		local dispatchData = {
-			message = title,
-			codeName = "911call",
-			code = "10-64",
-			icon = "fas fa-skull-crossbones",
-			priority = 2,
-			coords = coords,
-			description = description,
-			jobs = { jobName },
-		}
-		TriggerEvent("ps-dispatch:server:notify", dispatchData)
-	else
-		local players = self:getOnlinePlayersInJob(jobName)
+	local handled = self:sendDispatchAlert({
+		code = "10-64",
+		title = title,
+		message = description,
+		description = description,
+		icon = "fas fa-skull-crossbones",
+		priority = 2,
+		coords = coords,
+		jobs = { jobName },
+		dispatchType = "alerts",
+		blip = {
+			sprite = 161,
+			color = 1,
+			scale = 1.0,
+			label = title,
+			duration = 5000,
+			radius = radius or 50.0,
+		},
+	}, { provider = "auto_detect" })
 
-		if not players then
-			return
-		end
+	if handled then
+		return
+	end
 
-		for _, player in pairs(players) do
-			TriggerClientEvent("lyre_illegalmissions:alert", player, jobName, coords, radius, title, description)
-		end
+	local players = self:getOnlinePlayersInJob(jobName)
+
+	if not players then
+		return
+	end
+
+	for _, player in pairs(players) do
+		TriggerClientEvent("lyre_illegalmissions:alert", player, jobName, coords, radius, title, description)
 	end
 end
 

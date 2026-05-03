@@ -20,6 +20,14 @@ LyreBridge.registerProvider("server", "inventory", {
         context.raw.Functions.AddItem(context.itemName, context.count, nil, context.metadata)
         return true, true
     end,
+    addAmmo = function(self, context)
+        if type(context.raw.Functions.AddItem) ~= "function" then
+            return false
+        end
+
+        context.raw.Functions.AddItem(context.ammoItem or context.itemName, context.count)
+        return true, true
+    end,
     removeItem = function(self, context)
         if type(context.raw.Functions.RemoveItem) ~= "function" then
             return false
@@ -43,6 +51,13 @@ LyreBridge.registerProvider("server", "inventory", {
         end
 
         return true, items[context.slot]
+    end,
+    canCarryItem = function(self, context)
+        if type(context.raw.Functions.CanCarryItem) ~= "function" then
+            return true, true
+        end
+
+        return true, context.raw.Functions.CanCarryItem(context.itemName, context.count)
     end,
     setItemMetadata = function(self, context)
         local items = context.raw.PlayerData and context.raw.PlayerData.items
