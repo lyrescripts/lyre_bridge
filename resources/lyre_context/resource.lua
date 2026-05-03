@@ -5,6 +5,7 @@ LyreBridge.registerResource("lyre_context", {
             "bridge/client/cl_esx.lua",
             "bridge/client/cl_example.lua",
             "bridge/client/cl_qbcore.lua",
+            "bridge/client/cl_qbox.lua",
         },
         server = {
         },
