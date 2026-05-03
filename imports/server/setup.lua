@@ -66,6 +66,15 @@ function Core.setupServerResourceBridge(config, options)
         return true, _G.bridge
     end
 
+    local loaded, loadError = Core.loadResourceBridgeFiles("server", resourceName, options)
+    if not loaded then
+        Core.log("error", loadError and loadError.message or "Unable to load server bridge files.", {
+            resource = resourceName,
+            side = "server",
+        })
+        return false, loadError
+    end
+
     Core._serverBridgeSetup[resourceName] = true
 
     local sqlSuccess, sqlResult = Core.prepareResourceSql(resourceName, config, options)

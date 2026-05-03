@@ -5,22 +5,32 @@ local resolveVehicle = internals.resolveVehicle
 Core.registerModule("client", "fuel", function()
     local module = {}
 
-    local setProviders = {
-        { resource = "lyre_fuel", export = "SetFuel" },
-        { resource = "LegacyFuel", export = "SetFuel" },
-        { resource = "esx-sna-fuel", export = "SetFuel" },
-        { resource = "ps-fuel", export = "SetFuel" },
-        { resource = "lj-fuel", export = "SetFuel" },
-        { resource = "BigDaddy-Fuel", export = "SetFuel" },
-        { resource = "cdn-fuel", export = "SetFuel" },
-        { resource = "lc_fuel", export = "SetFuel" },
-        { resource = "myFuel", export = "SetFuel" },
-        { resource = "okokGasStation", export = "SetFuel" },
-        { resource = "qb-fuel", export = "SetFuel" },
-        { resource = "qb-sna-fuel", export = "SetFuel" },
-        { resource = "Renewed-Fuel", export = "SetFuel" },
-        { resource = "x-fuel", export = "SetFuel" },
-    }
+    local function callProvider(methodName, context, ...)
+        for _, provider in ipairs(Core.getProviders("client", "fuel")) do
+            if type(provider[methodName]) == "function" and Core.isProviderAvailable(provider, context) then
+                local ok, handled, result = pcall(provider[methodName], provider, context, ...)
+                if ok and handled then
+                    Core.log("debug", "Fuel provider handled request.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        method = methodName,
+                    })
+                    return true, result
+                end
+
+                if not ok then
+                    Core.log("warn", "Fuel provider failed.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        method = methodName,
+                        error = tostring(handled),
+                    })
+                end
+            end
+        end
+
+        return false
+    end
 
     function module.set(vehicleOrNetId, fuel)
         local vehicle = resolveVehicle(vehicleOrNetId, 2500)
@@ -32,44 +42,14 @@ Core.registerModule("client", "fuel", function()
             })
         end
 
-        for _, provider in ipairs(setProviders) do
-            if Core.isStarted(provider.resource) then
-                local ok = pcall(function()
-                    exports[provider.resource][provider.export](vehicle, fuel)
-                end)
-                if ok then
-                    return true
-                end
-            end
-        end
+        local handled = callProvider("set", {
+            resource = currentResourceName(),
+            vehicle = vehicle,
+            fuel = fuel,
+        }, vehicle, fuel)
 
-        if Core.isStarted("ox_fuel") then
-            Entity(vehicle).state.fuel = fuel
+        if handled then
             return true
-        end
-
-        if Core.isStarted("ti_fuel") then
-            local ok = pcall(function()
-                exports["ti_fuel"]:setFuel(vehicle, fuel, "RON91")
-            end)
-            if ok then
-                return true
-            end
-        end
-
-        if Core.isStarted("ND_Fuel") then
-            SetVehicleFuelLevel(vehicle, fuel)
-            DecorSetFloat(vehicle, "_ANDY_FUEL_DECORE_", fuel)
-            return true
-        end
-
-        if Core.isStarted("rcore_fuel") then
-            local ok = pcall(function()
-                exports["rcore_fuel"]:SetVehicleFuel(vehicle, fuel)
-            end)
-            if ok then
-                return true
-            end
         end
 
         SetVehicleFuelLevel(vehicle, fuel)
@@ -83,11 +63,13 @@ Core.registerModule("client", "fuel", function()
             return 100.0
         end
 
-        if Core.isStarted("ox_fuel") then
-            local stateFuel = Entity(vehicle).state.fuel
-            if stateFuel ~= nil then
-                return stateFuel + 0.0
-            end
+        local handled, fuel = callProvider("get", {
+            resource = currentResourceName(),
+            vehicle = vehicle,
+        }, vehicle)
+
+        if handled and fuel ~= nil then
+            return (tonumber(fuel) or 100.0) + 0.0
         end
 
         return (GetVehicleFuelLevel(vehicle) or 100.0) + 0.0

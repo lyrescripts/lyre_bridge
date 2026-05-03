@@ -2,7 +2,7 @@ LyreBridge = LyreBridge or {}
 
 local Core = LyreBridge
 
-Core.version = Core.version or "1.0.2"
+Core.version = Core.version or "1.1.0"
 Core.config = Core.config or {}
 
 function Core.currentResourceName()
@@ -51,7 +51,7 @@ local defaultConfig = {
     checkForUpdates = true,
     backgroundBlur = false,
     interactSystem = "marker",
-    defaultDetectionOrder = { "ESX", "QBCORE", "QBOX", "STANDALONE", "EXAMPLE" },
+    defaultDetectionOrder = { "ESX", "QBOX", "QBCORE", "STANDALONE", "EXAMPLE" },
 }
 
 for key, value in pairs(defaultConfig) do

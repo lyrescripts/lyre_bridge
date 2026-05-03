@@ -237,11 +237,19 @@ local function applySqlEntry(resourceName, entry, options, summary)
         return false, existingMigration
     end
 
-    if exists and not options.force then
+    if exists and not options.force and existingMigration.status == "applied" then
         fileSummary.skipped = true
         fileSummary.reason = "already_applied"
         summary.skipped = summary.skipped + 1
         return true
+    end
+
+    if exists and not options.force then
+        Core.log("warn", "Retrying SQL migration that did not finish cleanly.", {
+            resource = resourceName,
+            migration = migrationId,
+            status = existingMigration.status or "unknown",
+        })
     end
 
     local statements = Statements.split(sql)

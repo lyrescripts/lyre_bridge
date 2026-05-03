@@ -9,6 +9,8 @@ local function normalizePath(path)
         :gsub("%s+$", "")
 end
 
+Core.normalizePath = Core.normalizePath or normalizePath
+
 local function addIssue(target, code, message, context)
     target[#target + 1] = {
         code = code,
@@ -45,12 +47,143 @@ local function resolveResourcePath(resourceName, definition, path, absolute)
     return normalizePath((definition.path or ("resources/" .. resourceName)) .. "/" .. normalized)
 end
 
+Core.resolveResourcePath = Core.resolveResourcePath or resolveResourcePath
+
 local function resourceFileExists(path)
     if type(LoadResourceFile) ~= "function" then
         return true
     end
 
     return type(LoadResourceFile("lyre_bridge", path)) == "string"
+end
+
+Core.resourceFileExists = Core.resourceFileExists or resourceFileExists
+
+local function loadBridgeRuntimeFile(path, context)
+    path = normalizePath(path)
+
+    if path == "" then
+        return false, Core.fail("empty_runtime_file_path", "Runtime file path is empty.", context)
+    end
+
+    Core._loadedRuntimeFiles = Core._loadedRuntimeFiles or {}
+    if Core._loadedRuntimeFiles[path] then
+        return true
+    end
+
+    if type(LoadResourceFile) ~= "function" then
+        Core._loadedRuntimeFiles[path] = true
+        return true
+    end
+
+    local runtime = LoadResourceFile("lyre_bridge", path)
+    if type(runtime) ~= "string" then
+        return false, Core.fail("runtime_file_missing", "Runtime file is missing in lyre_bridge.", cloneContext(context, {
+            path = path,
+        }))
+    end
+
+    local fn, err = load(runtime, "@lyre_bridge/" .. path)
+    if not fn then
+        return false, Core.fail("runtime_file_compile_failed", tostring(err), cloneContext(context, {
+            path = path,
+        }))
+    end
+
+    local ok, result = pcall(fn)
+    if not ok then
+        return false, Core.fail("runtime_file_load_failed", tostring(result), cloneContext(context, {
+            path = path,
+        }))
+    end
+
+    Core._loadedRuntimeFiles[path] = true
+    return true
+end
+
+function Core.loadResourceDefinition(resourceName)
+    if type(resourceName) ~= "string" or resourceName == "" then
+        return false, Core.fail("invalid_resource_name", "Resource definition loading expects a resource name.")
+    end
+
+    if Core.resources and Core.resources[resourceName] then
+        return true, Core.resources[resourceName]
+    end
+
+    local path = normalizePath(("resources/%s/resource.lua"):format(resourceName))
+    local ok, err = loadBridgeRuntimeFile(path, {
+        resource = resourceName,
+        kind = "resource",
+    })
+
+    if not ok then
+        return false, err
+    end
+
+    local definition = Core.resources and Core.resources[resourceName]
+    if type(definition) ~= "table" then
+        return false, Core.fail("resource_definition_missing", "Resource definition did not register itself.", {
+            resource = resourceName,
+            path = path,
+        })
+    end
+
+    return true, definition
+end
+
+function Core.loadResourceBridgeFiles(side, resourceName, options)
+    options = options or {}
+    side = side or "shared"
+
+    local ok, definitionOrError = Core.loadResourceDefinition(resourceName)
+    if not ok then
+        return false, definitionOrError
+    end
+
+    local definition = definitionOrError
+    local bridge = definition.bridge
+    local files = type(bridge) == "table" and bridge[side] or nil
+
+    if files == nil then
+        return true, definition
+    end
+
+    if type(files) ~= "table" then
+        return false, Core.fail("invalid_bridge_file_list", "Bridge files must be listed in an array.", {
+            resource = resourceName,
+            side = side,
+        })
+    end
+
+    for index, file in ipairs(files) do
+        if type(file) ~= "string" or file == "" then
+            return false, Core.fail("invalid_bridge_file_entry", "Bridge file entries must be non-empty strings.", {
+                resource = resourceName,
+                side = side,
+                index = index,
+            })
+        end
+
+        local path = resolveResourcePath(resourceName, definition, file)
+        local loaded, loadError = loadBridgeRuntimeFile(path, {
+            resource = resourceName,
+            side = side,
+            kind = "bridge",
+            index = index,
+        })
+
+        if not loaded then
+            return false, loadError
+        end
+    end
+
+    Core.log("debug", "Resource bridge files loaded.", {
+        resource = resourceName,
+        side = side,
+        files = #files,
+    })
+
+    return true, definition
 end
 
 local function validateFile(summary, path, context)

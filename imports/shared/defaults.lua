@@ -88,6 +88,13 @@ function Core.applyModuleDefaults(bridge, context)
                 return module and module.run(...)
             end
         end
+
+        if type(bridge.sendDispatchAlert) ~= "function" then
+            function bridge:sendDispatchAlert(payload, options)
+                local module = Core.getModule("client", "dispatch")
+                return module and module.send(payload, options) or false
+            end
+        end
     elseif context.side == "server" then
         if type(bridge.ensureSql) ~= "function" then
             function bridge:ensureSql(resourceName, options)
@@ -159,10 +166,68 @@ function Core.applyModuleDefaults(bridge, context)
             end
         end
 
+        if bridge.__lyreUseAdapterUsableItems ~= true then
+            bridge.registerUsableItem = function(self, itemName, callback)
+                local module = Core.getModule("server", "usableItems")
+                return module and module.register(self, itemName, callback)
+            end
+        end
+
+        if bridge.__lyreUseAdapterSociety ~= true then
+            bridge.getSocietyMoney = function(self, jobName)
+                local module = Core.getModule("server", "society")
+                return module and module.getMoney(self, jobName) or 0
+            end
+
+            bridge.removeSocietyMoney = function(self, jobName, amount)
+                local module = Core.getModule("server", "society")
+                return module and module.removeMoney(self, jobName, amount) or false
+            end
+        end
+
+        if bridge.__lyreUseAdapterOfflineAccounts ~= true then
+            bridge.updateOfflinePlayerAccount = function(self, identifier, account, amount)
+                local module = Core.getModule("server", "offlineAccounts")
+                return module and module.update(self, identifier, account, amount) or false
+            end
+        end
+
+        if type(bridge.inventorySupportsMetadata) ~= "function" then
+            function bridge:inventorySupportsMetadata()
+                local module = Core.getModule("server", "inventory")
+                return module and module.supportsMetadata(self) or false
+            end
+        end
+
+        if type(bridge.sendDispatchAlert) ~= "function" then
+            function bridge:sendDispatchAlert(payload, options)
+                local module = Core.getModule("server", "dispatch")
+                return module and module.send(payload, options) or false
+            end
+        end
+
         if type(bridge.getVehicleMileage) ~= "function" then
             function bridge:getVehicleMileage()
                 return nil, nil, nil
             end
+        end
+
+        if type(bridge.getPlayerFromId) == "function" and not bridge.__lyrePlayerEnriched then
+            local originalGetPlayerFromId = bridge.getPlayerFromId
+
+            bridge.getPlayerFromId = function(self, playerId)
+                local player = originalGetPlayerFromId(self, playerId)
+                if type(player) == "table" then
+                    local module = Core.getModule("server", "inventory")
+                    if module and type(module.enrichPlayer) == "function" then
+                        module.enrichPlayer(self, player)
+                    end
+                end
+
+                return player
+            end
+
+            bridge.__lyrePlayerEnriched = true
         end
     end
 

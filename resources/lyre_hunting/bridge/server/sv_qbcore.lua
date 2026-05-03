@@ -122,22 +122,3 @@ function bridge:getPlayerFromId(playerId)
 	return player
 end
 
----registerUsableItem
----@description Registers a usable item that triggers a callback when used
----@param itemName string The item name to register
----@param callback function The callback function when item is used
----@return void
----@public
-function bridge:registerUsableItem(itemName, callback)
-	if GetResourceState("ox_inventory") == "started" then
-		return
-	end
-
-	if GetResourceState("qs-inventory") == "started" then
-		return
-	end
-
-	self.object.Functions.CreateUseableItem(itemName, function(source, item)
-		callback(source, item)
-	end)
-end

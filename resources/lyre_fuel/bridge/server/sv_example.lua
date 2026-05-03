@@ -32,7 +32,10 @@ end
 function bridge:getPlayerFromId(playerId)
 	-- Edit this function to match your framework's functions
 
-	local player = {}
+	local player = {
+		source = playerId,
+		raw = nil,
+	}
 
 	player.getIdentifier = function() end
 
@@ -48,14 +51,6 @@ function bridge:getPlayerFromId(playerId)
 
 	player.getJob = function() end
 
-	player.addItem = function(itemName, count, metadata) end
-
-	player.removeItem = function(itemName, count, slot) end
-
-	player.getItemCount = function(itemName) return 0 end
-
-	player.setItemMetadata = function(itemName, slot, metadata) end
-
 	player.getAdminRank = function() end
 
 	return player
@@ -70,16 +65,6 @@ function bridge:getIdFromIdentifier(identifier)
 	-- Edit this function to match your framework's functions
 end
 
----updateOfflinePlayerAccount
----@description Updates an offline player's account balance
----@param identifier string The player's identifier
----@param account string The account type (bank, money, etc.)
----@param amount number The amount to add (positive) or remove (negative)
----@return boolean Success status
----@public
-function bridge:updateOfflinePlayerAccount(identifier, account, amount)
-	-- Edit this function to match your framework's functions
-end
 
 ---expressRefillAction
 ---@description Custom express refill action (override in bridge if Config.refillMission.expressRefillAction = "custom")
@@ -118,41 +103,3 @@ function bridge:nonLiquidRefillAction(stationId, fuelType, amount)
 	-- This is used for fuel types like electricity where mission refill doesn't make sense
 end
 
----registerUsableItem
----@description Registers a usable item that triggers the refuel functionality
----@param itemName string The item name to register
----@param callback function The callback function when item is used
----@return void
----@public
-function bridge:registerUsableItem(itemName, callback)
-	if GetResourceState("ox_inventory") == "started" then
-		return
-	end
-
-	if GetResourceState("qs-inventory") == "started" then
-		return
-	end
-
-	-- Edit this function to match your framework's functions
-end
-
----getSocietyMoney
----@description Gets the balance of a society/job account
----@param jobName string The job name
----@return number balance The society account balance
----@public
-function bridge:getSocietyMoney(jobName)
-	-- Edit this function to match your framework's functions
-	return 0
-end
-
----removeSocietyMoney
----@description Removes money from a society/job account
----@param jobName string The job name
----@param amount number The amount to remove
----@return boolean success Whether the operation was successful
----@public
-function bridge:removeSocietyMoney(jobName, amount)
-	-- Edit this function to match your framework's functions
-	return false
-end

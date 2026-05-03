@@ -42,132 +42,56 @@ Core.registerModule("client", "vehicleKeys", function()
             })
         end
 
-        local providers = {
-            function()
-                if Core.isStarted("vehicles_keys") then
-                    TriggerServerEvent("vehicles_keys:selfGiveVehicleKeys", plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("fivecode_carkeys") then
-                    if vehicle and vehicle ~= 0 then
-                        local ok = pcall(function()
-                            exports["fivecode_carkeys"]:GiveKey(vehicle, false, true)
-                        end)
-                        if ok then
-                            return true
-                        end
-                    end
-
-                    TriggerServerEvent("fivecode_carkeys:pdmGiveKey", plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("stasiek_vehiclekeys") and vehicle and vehicle ~= 0 then
-                    DecorSetInt(vehicle, "owner", GetPlayerServerId(PlayerId()))
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("ti_vehicleKeys") then
-                    exports["ti_vehicleKeys"]:addTemporaryVehicle(plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("F_RealCarKeysSystem") then
-                    TriggerServerEvent("F_RealCarKeysSystem:generateVehicleKeys", plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("qb-vehiclekeys") then
-                    TriggerEvent("vehiclekeys:client:SetOwner", plate)
-                    TriggerEvent("vehiclekeys:client:AddKeys", plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("ak47_qb_vehiclekeys") then
-                    exports["ak47_qb_vehiclekeys"]:GiveKey(plate, false)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("ak47_vehiclekeys") then
-                    exports["ak47_vehiclekeys"]:GiveKey(plate, false)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("mk_vehiclekeys") and vehicle and vehicle ~= 0 then
-                    exports["mk_vehiclekeys"]:AddKey(vehicle)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("MrNewbVehicleKeys") then
-                    exports["MrNewbVehicleKeys"]:GiveKeysByPlate(plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("qbx_vehiclekeys") and vehicle and vehicle ~= 0 and lib and lib.callback then
-                    lib.callback.await("qbx_vehiclekeys:server:giveKeys", false, VehToNet(vehicle))
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("qs-vehiclekeys") then
-                    exports["qs-vehiclekeys"]:GiveKeys(plate, model, true)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("t1ger_keys") then
-                    exports["t1ger_keys"]:GiveTemporaryKeys(plate, model, options.keyType or "temporary")
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("tgiann-hotwire") then
-                    exports["tgiann-hotwire"]:GiveKeyPlate(plate, true)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("wasabi_carlock") then
-                    exports["wasabi_carlock"]:GiveKey(plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("xd_locksystem") then
-                    local ok = pcall(function()
-                        exports["xd_locksystem"]:SetVehicleKey(plate)
-                    end)
-                    if ok then
-                        return true
-                    end
-
-                    exports["xd_locksystem"]:givePlayerKeys(plate)
-                    return true
-                end
-            end,
-            function()
-                if Core.isStarted("Renewed-Vehiclekeys") then
-                    exports["Renewed-Vehiclekeys"]:addKey(plate)
-                    return true
-                end
-            end,
+        local context = {
+            resource = currentResourceName(),
+            plate = plate,
+            netId = resolvedNetId,
+            vehicle = vehicle,
+            model = model,
+            options = options,
         }
 
-        for _, provider in ipairs(providers) do
-            local ok, handled = pcall(provider)
-            if ok and handled then
-                return true
+        for _, provider in ipairs(Core.getProviders("client", "vehicleKeys")) do
+            if type(provider.give) == "function" and Core.isProviderAvailable(provider, context) then
+                local ok, handled = pcall(provider.give, provider, context)
+                if ok and handled then
+                    Core.log("debug", "Vehicle key provider handled request.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        method = "give",
+                    })
+                    return true
+                end
+
+                if not ok then
+                    Core.log("warn", "Vehicle key provider failed.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        error = tostring(handled),
+                    })
+                end
+            end
+        end
+
+        for _, provider in ipairs(Core.getProviders("client", "vehicleKeys")) do
+            if type(provider.giveWithoutResourceCheck) == "function" then
+                local ok, handled = pcall(provider.giveWithoutResourceCheck, provider, context)
+                if ok and handled then
+                    Core.log("debug", "Vehicle key fallback provider handled request.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        method = "give",
+                    })
+                    return true
+                end
+
+                if not ok then
+                    Core.log("warn", "Vehicle key fallback provider failed.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        error = tostring(handled),
+                    })
+                end
             end
         end
 
@@ -178,7 +102,35 @@ Core.registerModule("client", "vehicleKeys", function()
         })
     end
 
-    function module.remove()
+    function module.remove(plate, options)
+        local context = {
+            resource = currentResourceName(),
+            plate = plate,
+            options = options or {},
+        }
+
+        for _, provider in ipairs(Core.getProviders("client", "vehicleKeys")) do
+            if type(provider.remove) == "function" and Core.isProviderAvailable(provider, context) then
+                local ok, handled = pcall(provider.remove, provider, context)
+                if ok and handled then
+                    Core.log("debug", "Vehicle key provider handled request.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        method = "remove",
+                    })
+                    return true
+                end
+
+                if not ok then
+                    Core.log("warn", "Vehicle key remove provider failed.", {
+                        resource = currentResourceName(),
+                        provider = Core.providerName(provider),
+                        error = tostring(handled),
+                    })
+                end
+            end
+        end
+
         return true
     end
 

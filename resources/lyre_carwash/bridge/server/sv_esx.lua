@@ -22,43 +22,6 @@ function bridge:init()
 end
 
 
----updateOfflinePlayerAccount
----@param identifier string
----@param account string
----@param amount number
----@return void
----@public
-function bridge:updateOfflinePlayerAccount(identifier, account, amount)
-	if not identifier then
-		return
-	end
-	if not account then
-		return
-	end
-	if not amount then
-		return
-	end
-
-	local response = MySQL.query.await("SELECT * FROM `users` WHERE `identifier` = ?", { identifier })
-	if #response == 0 then
-		return false
-	end
-
-	local accounts = json.decode(response[1].accounts)
-
-	if not accounts[account] then
-		return false
-	end
-
-	accounts[account] = accounts[account] + amount
-
-	local newAccounts = json.encode(accounts)
-
-	MySQL.query("UPDATE `users` SET `accounts` = @accounts WHERE `identifier` = @identifier", {
-		["@accounts"] = newAccounts,
-		["@identifier"] = identifier,
-	})
-end
 
 ---expressRefillAction
 ---@param stationId string

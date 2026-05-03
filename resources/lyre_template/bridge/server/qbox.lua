@@ -5,7 +5,7 @@ local this = "QBOX"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("qbx_core") == "started"
+	return LyreBridge.isStarted("qbx_core")
 end
 
 local bridge = _G.bridge[this]
@@ -18,5 +18,8 @@ local bridge = _G.bridge[this]
 ---@return void
 ---@public
 function bridge:init()
-	self.object = exports["qbx_core"]
+	local framework = LyreBridge.getModule("server", "framework")
+	if framework and framework.getQBox then
+		self.object = framework.getQBox()
+	end
 end

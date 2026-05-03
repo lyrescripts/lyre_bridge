@@ -1,12 +1,14 @@
 # lyre_bridge
 
-`lyre_bridge` is the shared compatibility core for the refactored Lyre resource copy.
+`lyre_bridge` is the shared compatibility core for the Lyre resource pack.
 
 It provides:
 - deterministic bridge auto detection with aliases for ESX, QBCore, Qbox, standalone and example/custom bridges;
 - one central compatibility folder per Lyre resource;
+- runtime adapter loading from the central resource registry, so manifests do not duplicate framework file lists;
 - central shared config for repeated options such as locale, bridge, update checks, background blur and interact system;
 - lazy modules that load only when a script asks for them;
+- provider registries for third-party integrations such as fuel, vehicle keys, inventory, usable items, society accounts and offline accounts;
 - thin import entrypoints that load smaller shared, client and server modules;
 - a dedicated resource registry module with a runtime consistency check;
 - wrapped bridge calls with structured errors instead of silent failures;
@@ -33,6 +35,7 @@ Common client behavior belongs in `imports/client.lua`, not in every resource ad
 - `setFuel(vehicleOrNetId, fuel)`
 - `getFuel(vehicleOrNetId)`
 - `progress(options)` or `progress(duration, label, options)`
+- `sendDispatchAlert(payload, options)`
 
 Resource adapters should only define:
 
@@ -57,6 +60,7 @@ The server `players` module normalizes ESX, QBCore and Qbox player access and in
 - `getPlayerName(playerId)` returning `firstname, lastname`
 - `getPlayerDisplayName(playerId)`
 - `showNotification(playerId, message, type, duration)`
+- `sendDispatchAlert(payload, options)`
 
 The normalized player wrapper exposes `source`, `raw`, `getIdentifier()`, `getName()`, `getFirstName()`, `getLastName()`, `showNotification(...)`, `getAccount(account)`, `removeAccountMoney(account, amount)` and `addAccountMoney(account, amount)`.
 
@@ -113,11 +117,81 @@ that the runtime must load or validate.
 2. Put common SQL in `resources/<resource>/sql/*.sql`, then reference it from `sql.files`.
 3. Put ESX/QBCore-specific SQL in separate files and reference them from `sql.frameworkFiles`.
 4. Put only framework-specific adapter code in `bridge/client/*.lua` and `bridge/server/*.lua`.
-5. In the resource `fxmanifest.lua`, import shared, client and server bridge files before the resource scripts that call `bridge`.
+5. In the resource `fxmanifest.lua`, import only `@lyre_bridge/imports/shared.lua`, `@lyre_bridge/imports/client.lua`, and `@lyre_bridge/imports/server.lua` before scripts that call `bridge`.
 6. In the resource, call `setupClientBridge()` and `setupServerBridge()` once during startup.
 
 New adapters should first rely on the defaults injected by `imports/client.lua` and `imports/server.lua`.
 Add adapter methods only when the resource needs a different behavior or a feature the central modules cannot safely guess.
+
+The setup functions load `resources/<resource>/resource.lua`, then load the bridge files listed for the requested side. The registry is the source of truth; do not list `resources/<resource>/bridge/...` files in every resource manifest.
+
+## Adding a provider
+
+Provider integrations should live in topic folders, not inside the module core:
+
+```text
+imports/client/fuel/providers/<provider>.lua
+imports/client/vehicle_keys/providers/<provider>.lua
+imports/server/inventory/providers/<provider>.lua
+imports/server/usable_items/providers/<provider>.lua
+imports/server/society/providers/<provider>.lua
+imports/server/offline_accounts/providers/<provider>.lua
+imports/client/dispatch/providers/<provider>.lua
+imports/server/dispatch/providers/<provider>.lua
+```
+
+Register providers with `LyreBridge.registerProvider(side, moduleName, provider)`.
+Providers should expose small methods such as `set`, `get`, `give`, `remove`, or `register`.
+The module decides the contract; the provider file only contains resource-specific glue.
+When several resources share the same export shape, keep the shared helper in one `shared.lua`
+file and keep one small named provider file per supported resource.
+Add the provider import once in `imports/client.lua` or `imports/server.lua`.
+
+Example:
+
+```lua
+LyreBridge.registerProvider("client", "fuel", {
+    name = "my_fuel",
+    resource = "my_fuel",
+    priority = 100,
+    set = function(self, context, vehicle, fuel)
+        exports["my_fuel"]:SetFuel(vehicle, fuel)
+        return true
+    end,
+})
+```
+
+### Selecting or disabling providers
+
+Providers are auto-selected by priority when their target resource is started.
+For runtime troubleshooting or server-specific choices, use replicated convars
+for client providers and normal convars for server providers:
+
+```cfg
+setr lyre_bridge:provider:fuel:force ox_fuel
+setr lyre_bridge:provider:vehicleKeys:force qb-vehiclekeys
+set  lyre_bridge:provider:inventory:force ox_inventory
+set  lyre_bridge:provider:usableItems:force qbox
+setr lyre_bridge:provider:client:dispatch:force cd_dispatch
+set  lyre_bridge:provider:server:dispatch:force cd_dispatch
+
+setr lyre_bridge:provider:fuel:disabled LegacyFuel,cdn-fuel
+setr lyre_bridge:provider:vehicleKeys:disabled qs-vehiclekeys
+set  lyre_bridge:provider:inventory:disabled qb
+setr lyre_bridge:provider:client:dispatch:disabled ps-dispatch
+set  lyre_bridge:provider:server:dispatch:disabled fd_dispatch
+```
+
+More specific keys win by scope because they are checked first:
+
+```cfg
+setr lyre_bridge:provider:client:fuel:force lyre_fuel
+set  lyre_bridge:provider:server:inventory:force ox_inventory
+setr lyre_bridge:provider:client:fuel:disabled LegacyFuel
+```
+
+Enable `lyre_bridge:debug true` to see which provider handled fuel, vehicle
+keys, inventory, usable item, society, offline account, and dispatch calls.
 
 ## Custom examples
 
@@ -133,8 +207,8 @@ That makes updates safer because the core imports can change without overwriting
 1. `@lyre_bridge/imports/shared.lua` creates the local `LyreBridge` runtime inside the consuming resource, then loads the smaller files in `imports/shared/*.lua`.
 2. The resource config is wrapped with `LyreBridge.createResourceConfig(...)`, so common values such as `locale`, `bridge`, `backgroundBlur` and `interactSystem` can come from global or per-resource convars.
 3. `@lyre_bridge/imports/client.lua` and `@lyre_bridge/imports/server.lua` load their own smaller modules from `imports/client/*.lua` and `imports/server/*.lua`.
-4. Framework adapter files populate `_G.bridge` with candidates such as `ESX`, `QBCORE`, `QBOX`, `STANDALONE` or `EXAMPLE`.
-5. The resource calls `setupClientBridge()` or `setupServerBridge()`. These wrappers delegate to `LyreBridge.setupClientResourceBridge(Config)` and `LyreBridge.setupServerResourceBridge(Config)`.
+4. The resource calls `setupClientBridge()` or `setupServerBridge()`. These wrappers load the resource definition and framework adapter files from `lyre_bridge/resources/<resource>/resource.lua`.
+5. Framework adapter files populate `_G.bridge` with candidates such as `ESX`, `QBCORE`, `QBOX`, `STANDALONE` or `EXAMPLE`.
 6. `LyreBridge.setupBridge(...)` selects the configured bridge or auto-detects one, calls its `init()`, validates required methods, decorates the selected bridge with shared defaults, then replaces `_G.bridge` with the active adapter.
 
 Server startup also calls `LyreBridge.prepareResourceSql(...)` before bridge setup.
@@ -156,9 +230,9 @@ local bridge code.
 Every refactored resource depends on `lyre_bridge` and imports:
 - `@lyre_bridge/imports/shared.lua` in shared scripts, before the resource config;
 - `@lyre_bridge/imports/client.lua` on the client;
-- `@lyre_bridge/imports/server.lua` on the server;
-- `@lyre_bridge/resources/<resource>/bridge/client/*.lua` for client bridge adapters;
-- `@lyre_bridge/resources/<resource>/bridge/server/*.lua` for server bridge adapters.
+- `@lyre_bridge/imports/server.lua` on the server.
+
+Bridge adapter files are loaded by the setup functions from the central registry.
 
 Useful convars:
 
@@ -201,4 +275,4 @@ Manual registry check:
 lyre_bridge_check
 ```
 
-The original `script` directory is untouched. This refactored copy lives in `script_lyre_bridge`.
+This bridge is the source of truth for shared Lyre compatibility modules and provider registrations.

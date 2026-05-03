@@ -63,15 +63,6 @@ function bridge:getIdFromIdentifier(identifier)
 	return 0
 end
 
----updateOfflinePlayerAccount
----@param identifier string
----@param account string
----@param amount number
----@return void
----@public
-function bridge:updateOfflinePlayerAccount(identifier, account, amount)
-	-- Customize this function
-end
 
 ---expressRefillAction
 ---@param stationId string
