@@ -51,7 +51,7 @@ local defaultConfig = {
     checkForUpdates = true,
     backgroundBlur = false,
     interactSystem = "marker",
-    defaultDetectionOrder = { "ESX", "QBCORE", "STANDALONE", "EXAMPLE" },
+    defaultDetectionOrder = { "ESX", "QBCORE", "QBOX", "STANDALONE", "EXAMPLE" },
 }
 
 for key, value in pairs(defaultConfig) do
