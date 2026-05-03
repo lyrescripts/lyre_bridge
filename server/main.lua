@@ -38,6 +38,10 @@ exports("ListRegisteredResources", function()
     return LyreBridge.listRegisteredResources()
 end)
 
+exports("CheckResourceDefinitions", function()
+    return LyreBridge.validateResourceDefinitions()
+end)
+
 CreateThread(function()
     Wait(0)
     LyreBridge.log("debug", "Core ready.", {
@@ -66,6 +70,32 @@ local function parseSqlCommandArgs(args)
 
     return options
 end
+
+RegisterCommand("lyre_bridge_check", function(source)
+    if source ~= 0 and not IsPlayerAceAllowed(source, "lyre_bridge.check") then
+        return
+    end
+
+    local summary = LyreBridge.validateResourceDefinitions()
+    local level = summary.ok and "info" or "error"
+    LyreBridge.log(level, "Resource registry check completed.", {
+        resources = summary.resources,
+        bridgeFiles = summary.bridgeFiles,
+        sqlFiles = summary.sqlFiles,
+        warnings = #summary.warnings,
+        errors = #summary.errors,
+    })
+
+    for _, issue in ipairs(summary.warnings) do
+        LyreBridge.log("warn", issue.code .. ": " .. issue.message, issue.context)
+    end
+
+    if not summary.ok then
+        for _, issue in ipairs(summary.errors) do
+            LyreBridge.log("error", issue.code .. ": " .. issue.message, issue.context)
+        end
+    end
+end, true)
 
 RegisterCommand("lyre_bridge_sql", function(source, args)
     if source ~= 0 and not IsPlayerAceAllowed(source, "lyre_bridge.sql") then

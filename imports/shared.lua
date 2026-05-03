@@ -24,5 +24,6 @@ Core.loadImport = Core.loadImport or loadImport
 Core.loadImport("imports/shared/bootstrap.lua")
 Core.loadImport("imports/shared/config.lua")
 Core.loadImport("imports/shared/runtime.lua")
+Core.loadImport("imports/shared/resources.lua")
 Core.loadImport("imports/shared/defaults.lua")
 Core.loadImport("imports/shared/setup.lua")

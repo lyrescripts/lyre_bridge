@@ -150,48 +150,6 @@ function Core.getDetectionOrder(config, options)
     return Core.config.defaultDetectionOrder
 end
 
-function Core.registerResource(resourceName, definition)
-    if type(resourceName) ~= "string" or resourceName == "" then
-        return false, Core.fail("invalid_resource_registration", "Resource registration expects a non-empty resource name.")
-    end
-
-    if type(definition) ~= "table" then
-        definition = {}
-    end
-
-    definition.name = definition.name or resourceName
-    definition.path = definition.path or ("resources/" .. resourceName)
-    definition.bridge = definition.bridge or {}
-    definition.sql = definition.sql or {}
-
-    Core.resources[resourceName] = definition
-    Core.log("debug", "Resource registered.", {
-        resource = resourceName,
-        path = definition.path,
-    })
-
-    return true, definition
-end
-
-function Core.getResourceDefinition(resourceName)
-    if type(resourceName) ~= "string" then
-        return nil
-    end
-
-    return Core.resources and Core.resources[resourceName] or nil
-end
-
-function Core.listRegisteredResources()
-    local names = {}
-
-    for resourceName in pairs(Core.resources or {}) do
-        names[#names + 1] = resourceName
-    end
-
-    table.sort(names)
-    return names
-end
-
 function Core.registerModule(side, name, factory)
     if type(side) ~= "string" or type(name) ~= "string" or type(factory) ~= "function" then
         return false, Core.fail("invalid_module_registration", "Module registration expects side, name and factory.")

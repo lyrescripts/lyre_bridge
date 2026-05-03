@@ -8,6 +8,7 @@ It provides:
 - central shared config for repeated options such as locale, bridge, update checks, background blur and interact system;
 - lazy modules that load only when a script asks for them;
 - thin import entrypoints that load smaller shared, client and server modules;
+- a dedicated resource registry module with a runtime consistency check;
 - wrapped bridge calls with structured errors instead of silent failures;
 - shared client modules for common features such as notifications, target, vehicle keys, fuel and progress;
 - automatic SQL preparation from the central resource registry;
@@ -102,6 +103,10 @@ Every `resources/<resource>/resource.lua` registers that resource in the core:
 - `sql.frameworkFiles` lists framework-specific SQL files;
 - `requiresTables` lets optional SQL skip cleanly when a legacy table is missing.
 
+The registry intentionally has no `locked` flag. Packaging and escrow behavior
+come from each resource manifest, so the bridge registry only describes files
+that the runtime must load or validate.
+
 ## Adding a resource
 
 1. Create `resources/<resource>/resource.lua` and register the resource with `LyreBridge.registerResource(...)`.
@@ -188,6 +193,12 @@ Manual SQL command:
 lyre_bridge_sql lyre_garage force ESX
 lyre_bridge_sql lyre_garage force QBCORE
 lyre_bridge_sql lyre_fuel force ESX
+```
+
+Manual registry check:
+
+```cfg
+lyre_bridge_check
 ```
 
 The original `script` directory is untouched. This refactored copy lives in `script_lyre_bridge`.

@@ -65,6 +65,7 @@ files({
 })
 
 server_exports({
+    "CheckResourceDefinitions",
     "EnsureResourceSchema",
     "GetResourceDefinition",
     "ListRegisteredResources",
