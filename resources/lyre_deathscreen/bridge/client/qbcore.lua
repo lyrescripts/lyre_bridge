@@ -46,3 +46,11 @@ function bridge:revivePlayer()
 
 	return handled
 end
+
+---clearDeathStatus
+---@return void
+---@public
+function bridge:clearDeathStatus()
+	TriggerServerEvent("hospital:server:SetDeathStatus", false)
+	TriggerServerEvent("hospital:server:SetLaststandStatus", false)
+end

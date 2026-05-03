@@ -26,3 +26,9 @@ end
 function bridge:revivePlayer()
 	return false
 end
+
+---clearDeathStatus
+---@return void
+---@public
+function bridge:clearDeathStatus()
+end

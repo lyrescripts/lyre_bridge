@@ -39,8 +39,18 @@ end
 function bridge:revivePlayer()
 	if GetResourceState("esx_ambulancejob") == "started" then
 		TriggerEvent("esx_ambulancejob:revive")
+		TriggerServerEvent("esx_ambulancejob:setDeathStatus", false)
 		return true
 	end
 
 	return false
+end
+
+---clearDeathStatus
+---@return void
+---@public
+function bridge:clearDeathStatus()
+	if GetResourceState("esx_ambulancejob") == "started" then
+		TriggerServerEvent("esx_ambulancejob:setDeathStatus", false)
+	end
 end

@@ -32,3 +32,13 @@ function bridge:revivePlayer()
 
 	return false
 end
+
+---clearDeathStatus
+---@return void
+---@public
+function bridge:clearDeathStatus()
+	if GetResourceState("qbx_medical") == "started" then
+		TriggerServerEvent("qbx_medical:server:setDeathStatus", false)
+		TriggerServerEvent("qbx_medical:server:setLaststandStatus", false)
+	end
+end
