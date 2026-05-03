@@ -1,7 +1,6 @@
 LyreBridge.registerResource("lyre_illegalmissions-murderer", {
     path = "resources/lyre_illegalmissions-murderer",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/cl_esx.lua",
             "bridge/client/cl_example.lua",
@@ -14,7 +13,6 @@ LyreBridge.registerResource("lyre_illegalmissions-murderer", {
         },
     },
     sql = {
-        locked = false,
         files = {
         },
         frameworkFiles = {

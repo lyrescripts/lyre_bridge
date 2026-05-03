@@ -1,7 +1,6 @@
 LyreBridge.registerResource("ox_target", {
     path = "resources/ox_target",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/client.lua",
         },
@@ -9,7 +8,6 @@ LyreBridge.registerResource("ox_target", {
         },
     },
     sql = {
-        locked = false,
         files = {
         },
         frameworkFiles = {

@@ -1,7 +1,6 @@
 LyreBridge.registerResource("qtarget", {
     path = "resources/qtarget",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/client.lua",
         },
@@ -9,7 +8,6 @@ LyreBridge.registerResource("qtarget", {
         },
     },
     sql = {
-        locked = false,
         files = {
         },
         frameworkFiles = {

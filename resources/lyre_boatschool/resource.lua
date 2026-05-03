@@ -1,7 +1,6 @@
 LyreBridge.registerResource("lyre_boatschool", {
     path = "resources/lyre_boatschool",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/cl_esx.lua",
             "bridge/client/cl_example.lua",
@@ -14,7 +13,6 @@ LyreBridge.registerResource("lyre_boatschool", {
         },
     },
     sql = {
-        locked = false,
         files = {
             { id = "import_sql", path = "sql/import.sql", required = true, order = 10 },
         },

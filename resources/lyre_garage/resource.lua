@@ -1,7 +1,6 @@
 LyreBridge.registerResource("lyre_garage", {
     path = "resources/lyre_garage",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/cl_esx.lua",
             "bridge/client/cl_example.lua",
@@ -14,7 +13,6 @@ LyreBridge.registerResource("lyre_garage", {
         },
     },
     sql = {
-        locked = false,
         files = {
         },
         frameworkFiles = {

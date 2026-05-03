@@ -1,7 +1,6 @@
 LyreBridge.registerResource("lyre_deathscreen", {
     path = "resources/lyre_deathscreen",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/esx.lua",
             "bridge/client/example.lua",
@@ -18,7 +17,6 @@ LyreBridge.registerResource("lyre_deathscreen", {
         },
     },
     sql = {
-        locked = false,
         files = {
         },
         frameworkFiles = {

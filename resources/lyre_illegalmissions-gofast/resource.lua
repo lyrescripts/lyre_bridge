@@ -1,7 +1,6 @@
 LyreBridge.registerResource("lyre_illegalmissions-gofast", {
     path = "resources/lyre_illegalmissions-gofast",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/cl_esx.lua",
             "bridge/client/cl_example.lua",
@@ -14,7 +13,6 @@ LyreBridge.registerResource("lyre_illegalmissions-gofast", {
         },
     },
     sql = {
-        locked = false,
         files = {
         },
         frameworkFiles = {

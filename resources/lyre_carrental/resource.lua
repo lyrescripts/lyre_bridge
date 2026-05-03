@@ -1,7 +1,6 @@
 LyreBridge.registerResource("lyre_carrental", {
     path = "resources/lyre_carrental",
     bridge = {
-        locked = false,
         client = {
             "bridge/client/cl_esx.lua",
             "bridge/client/cl_example.lua",
@@ -14,7 +13,6 @@ LyreBridge.registerResource("lyre_carrental", {
         },
     },
     sql = {
-        locked = false,
         files = {
         },
         frameworkFiles = {
