@@ -19,6 +19,69 @@ It provides:
 - idempotent migration tracking in `lyre_bridge_migrations`;
 - open `custom/client`, `custom/server`, and `resources/<resource>` folders for third-party compatibility.
 
+## Release installation
+
+Required base resources:
+
+- `oxmysql`
+- `ox_lib`
+- `lyre_bridge`
+
+Start the framework and third-party integrations first, then start the Lyre pack in this order:
+
+```cfg
+ensure oxmysql
+ensure ox_lib
+ensure lyre_bridge
+
+ensure lyre_context
+ensure lyre_context-defaults
+ensure lyre_boatschool
+ensure lyre_drivingschool
+ensure lyre_flightschool
+ensure lyre_carrental
+ensure lyre_carwash
+ensure lyre_fuel
+ensure lyre_garage
+ensure lyre_hunting
+ensure lyre_illegalmissions
+ensure lyre_illegalmissions-atm
+ensure lyre_illegalmissions-cartheft
+ensure lyre_illegalmissions-gofast
+ensure lyre_illegalmissions-moneytruck
+ensure lyre_illegalmissions-murderer
+ensure lyre_tennis
+```
+
+Optional integrations are detected through providers when their resources are started:
+ESX, QBCore, Qbox, `ox_inventory`, `qb-inventory`, `qs-inventory`, target systems,
+notify systems, progress bars, fuel, vehicle keys, society accounts, dispatch and logs.
+Force or disable a provider with the convars documented below when auto-detection is not desired.
+
+SQL is prepared automatically when `lyre_bridge:autoSql` is enabled. The bridge runs the
+registered SQL files once per checksum and records applied migrations in
+`lyre_bridge_migrations`. If automatic SQL is disabled, import the SQL files from
+`lyre_bridge/resources/<resource>/sql/` manually before starting the dependent resource.
+
+Recommended production convars:
+
+```cfg
+set lyre_bridge:autoSql true
+set lyre_bridge:sqlStrict false
+set lyre_bridge:debug false
+set lyre_bridge:failHard false
+setr lyre_bridge:bridge auto_detect
+setr lyre_bridge:locale en
+setr lyre_bridge:interact marker
+```
+
+Troubleshooting checklist:
+
+- If a resource cannot find `bridge`, confirm `lyre_bridge` starts first and the resource manifest imports `@lyre_bridge/imports/shared.lua`, `@lyre_bridge/imports/client.lua`, and `@lyre_bridge/imports/server.lua`.
+- If inventory, target, dispatch, fuel or vehicle keys do not bind to the expected resource, enable `lyre_bridge:debug true` and force the provider with the matching convar.
+- If SQL is skipped, run `lyre_bridge_check`, inspect the registered resource SQL files, then run `lyre_bridge_sql <resource> force <framework>` only when you need a manual framework branch.
+- If a dependency is optional, the bridge should fall back quietly or log a clear warning. If it is required, keep it in the resource `dependencies` block.
+
 ## Common client bridge contract
 
 Common client behavior belongs in `imports/client.lua`, not in every resource adapter.
