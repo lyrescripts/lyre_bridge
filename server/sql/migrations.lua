@@ -52,3 +52,41 @@ function Migrations.mark(migrationId, resourceName, hash, status, errorText)
         errorText,
     }, { operation = "mark_migration", migration = migrationId })
 end
+
+function Migrations.list(resourceName)
+    local query = ([[
+        SELECT `id`, `resource`, `checksum`, `status`, `error`, `applied_at`
+        FROM `%s`
+        WHERE `resource` = ?
+        ORDER BY `applied_at` DESC, `id` ASC
+    ]]):format(SQL.config.migrationTable)
+
+    return Private.queryAwait("query", query, {
+        resourceName,
+    }, { operation = "list_migrations", resource = resourceName })
+end
+
+function SQL.getResourceMigrations(resourceName)
+    resourceName = resourceName or (type(GetCurrentResourceName) == "function" and GetCurrentResourceName() or "unknown")
+
+    local context = {
+        resource = resourceName,
+        operation = "list_migrations",
+    }
+
+    if not SQL.ready() then
+        return Core.fail("mysql_not_ready", "oxmysql is not ready; cannot read SQL migrations.", context)
+    end
+
+    local ok, migrationTableError = Migrations.ensureTable()
+    if not ok then
+        return migrationTableError
+    end
+
+    local listed, rows = Migrations.list(resourceName)
+    if not listed then
+        return rows
+    end
+
+    return Private.result(true, rows or {}, nil, nil, context)
+end
