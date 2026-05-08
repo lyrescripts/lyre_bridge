@@ -3,7 +3,7 @@ game("gta5")
 
 author("Lyre Scripts")
 description("Shared modular bridge core, lazy compatibility modules, and automatic SQL migrations for Lyre resources.")
-version("1.1.0")
+version("1.2.0")
 lua54("yes")
 
 escrow_ignore({
@@ -32,7 +32,6 @@ server_scripts({
     "server/sql/migrations.lua",
     "server/sql/statements.lua",
     "server/sql/resources.lua",
-    "server/sql.lua",
     "server/main.lua",
     "custom/server/*.lua",
 })
@@ -52,7 +51,9 @@ files({
 server_exports({
     "CheckResourceDefinitions",
     "EnsureResourceSchema",
+    "GetActiveBridgeInfo",
     "GetResourceDefinition",
+    "GetResourceIdentity",
     "ListRegisteredResources",
     "SqlQuery",
     "SqlSingle",
@@ -61,10 +62,12 @@ server_exports({
     "SqlInsert",
     "SqlTransaction",
     "SqlReady",
+    "GetResourceSqlMigrations",
 })
 
 exports({
     "BridgeVersion",
+    "GetActiveBridgeInfo",
 })
 
 dependencies({
