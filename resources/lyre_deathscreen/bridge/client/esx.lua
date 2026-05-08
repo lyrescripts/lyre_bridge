@@ -5,7 +5,7 @@ local this = "ESX"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("es_extended") == "started"
+	return LyreBridge.isStarted("es_extended")
 end
 
 local bridge = _G.bridge[this]
@@ -37,7 +37,7 @@ end
 ---@return boolean
 ---@public
 function bridge:revivePlayer()
-	if GetResourceState("esx_ambulancejob") == "started" then
+	if LyreBridge.isStarted("esx_ambulancejob") then
 		TriggerEvent("esx_ambulancejob:revive")
 		TriggerServerEvent("esx_ambulancejob:setDeathStatus", false)
 		return true
@@ -50,7 +50,7 @@ end
 ---@return void
 ---@public
 function bridge:clearDeathStatus()
-	if GetResourceState("esx_ambulancejob") == "started" then
+	if LyreBridge.isStarted("esx_ambulancejob") then
 		TriggerServerEvent("esx_ambulancejob:setDeathStatus", false)
 	end
 end

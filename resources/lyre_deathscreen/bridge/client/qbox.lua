@@ -5,7 +5,7 @@ local this = "QBOX"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("qbx_core") == "started"
+	return LyreBridge.isStarted("qbx_core")
 end
 
 local bridge = _G.bridge[this]
@@ -25,7 +25,7 @@ end
 ---@return boolean
 ---@public
 function bridge:revivePlayer()
-	if GetResourceState("qbx_medical") == "started" then
+	if LyreBridge.isStarted("qbx_medical") then
 		TriggerEvent("qbx_medical:client:playerRevived")
 		return true
 	end
@@ -37,7 +37,7 @@ end
 ---@return void
 ---@public
 function bridge:clearDeathStatus()
-	if GetResourceState("qbx_medical") == "started" then
+	if LyreBridge.isStarted("qbx_medical") then
 		TriggerServerEvent("qbx_medical:server:setDeathStatus", false)
 		TriggerServerEvent("qbx_medical:server:setLaststandStatus", false)
 	end

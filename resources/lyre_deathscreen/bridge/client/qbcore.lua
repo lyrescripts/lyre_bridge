@@ -5,7 +5,7 @@ local this = "QBCORE"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("qb-core") == "started"
+	return LyreBridge.isStarted("qb-core")
 end
 
 local bridge = _G.bridge[this]
@@ -27,7 +27,7 @@ end
 function bridge:revivePlayer()
 	local handled = false
 
-	if GetResourceState("qb-ambulancejob") == "started" then
+	if LyreBridge.isStarted("qb-ambulancejob") then
 		local success = pcall(function()
 			exports["qb-ambulancejob"]:RevivePlayer(Config.respawn.health)
 		end)
@@ -37,7 +37,7 @@ function bridge:revivePlayer()
 		end
 	end
 
-	if GetResourceState("hospital") == "started" or GetResourceState("qb-ambulancejob") == "started" then
+	if LyreBridge.isStarted("hospital") or LyreBridge.isStarted("qb-ambulancejob") then
 		TriggerEvent("hospital:client:Revive")
 		TriggerServerEvent("hospital:server:SetDeathStatus", false)
 		TriggerServerEvent("hospital:server:SetLaststandStatus", false)
