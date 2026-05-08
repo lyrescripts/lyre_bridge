@@ -227,6 +227,12 @@ local function isPreparedLicenseStatement(statement)
         or upper:match("^DEALLOCATE%s+PREPARE%s+STMT")
 end
 
+local function isEventStatement(statement)
+    local upper = string.upper(statement)
+    return upper:match("^CREATE%s+EVENT%s+")
+        or upper:match("^DROP%s+EVENT%s+")
+end
+
 local function isIgnorableSqlError(message)
     message = string.lower(tostring(message or ""))
 
@@ -452,6 +458,7 @@ end
 
 Statements.checksum = checksum
 Statements.execute = executeStatement
+Statements.isEventStatement = isEventStatement
 Statements.isPreparedLicenseStatement = isPreparedLicenseStatement
 Statements.normalize = normalizeStatement
 Statements.split = splitStatements
