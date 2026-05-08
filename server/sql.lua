@@ -1,2 +1,0 @@
--- SQL is split across server/sql/*.lua.
--- This file stays as a stable anchor for tooling and older references.
