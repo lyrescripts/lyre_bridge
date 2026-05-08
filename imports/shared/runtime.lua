@@ -94,6 +94,11 @@ function Core.fail(code, message, context)
     }
 
     Core.log("error", failure.code .. ": " .. failure.message, context)
+
+    if Core.config and Core.config.failHard then
+        error(("[lyre_bridge] %s: %s"):format(failure.code, failure.message), 2)
+    end
+
     return failure
 end
 
@@ -132,8 +137,36 @@ function Core.getResourceStateCached(resourceName, ttl)
     return state
 end
 
-function Core.isStarted(resourceName)
-    return Core.getResourceStateCached(resourceName) == "started"
+function Core.isStarted(resourceName, ttl)
+    return Core.getResourceStateCached(resourceName, ttl) == "started"
+end
+
+if type(AddEventHandler) == "function" and not Core._stateCacheInvalidationRegistered then
+    AddEventHandler("onResourceStart", function(resourceName)
+        if Core._stateCache then
+            Core._stateCache[resourceName] = nil
+        end
+    end)
+
+    AddEventHandler("onResourceStop", function(resourceName)
+        if Core._stateCache then
+            Core._stateCache[resourceName] = nil
+        end
+    end)
+
+    AddEventHandler("onClientResourceStart", function(resourceName)
+        if Core._stateCache then
+            Core._stateCache[resourceName] = nil
+        end
+    end)
+
+    AddEventHandler("onClientResourceStop", function(resourceName)
+        if Core._stateCache then
+            Core._stateCache[resourceName] = nil
+        end
+    end)
+
+    Core._stateCacheInvalidationRegistered = true
 end
 
 function Core.getDetectionOrder(config, options)
