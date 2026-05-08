@@ -5,7 +5,7 @@ local this = "QBCORE"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("qb-core") == "started"
+	return LyreBridge.isStarted("qb-core")
 end
 
 local bridge = _G.bridge[this]
