@@ -30,8 +30,20 @@ exports("SqlReady", function()
     return LyreBridge.SQL.ready()
 end)
 
+exports("GetResourceSqlMigrations", function(resourceName)
+    return LyreBridge.SQL.getResourceMigrations(resourceName)
+end)
+
 exports("GetResourceDefinition", function(resourceName)
     return LyreBridge.getResourceDefinition(resourceName)
+end)
+
+exports("GetResourceIdentity", function(resourceName)
+    return LyreBridge.getResourceIdentity(resourceName)
+end)
+
+exports("GetActiveBridgeInfo", function(resourceName, side)
+    return LyreBridge.getActiveBridgeInfo(resourceName, side)
 end)
 
 exports("ListRegisteredResources", function()
@@ -48,6 +60,7 @@ CreateThread(function()
         resource = GetCurrentResourceName(),
         version = LyreBridge.version,
         autoSql = LyreBridge.SQL.config.autoSql,
+        autoSqlEvents = LyreBridge.SQL.config.autoSqlEvents,
         sqlStrict = LyreBridge.SQL.config.strict,
     })
 end)
@@ -63,6 +76,8 @@ local function parseSqlCommandArgs(args)
 
         if lower == "force" or lower == "true" or lower == "1" then
             options.force = true
+        elseif lower == "events" or lower == "allow_events" or lower == "allowevents" then
+            options.allowEvents = true
         elseif value ~= "" then
             options.framework = value
         end
@@ -127,4 +142,129 @@ RegisterCommand("lyre_bridge_sql", function(source, args)
         force = options.force,
         framework = options.framework or "auto",
     })
+end, true)
+
+RegisterCommand("lyre_bridge_sql_status", function(source, args)
+    if source ~= 0 and not IsPlayerAceAllowed(source, "lyre_bridge.sql") then
+        return
+    end
+
+    local resourceName = args[1]
+    if not resourceName or resourceName == "" then
+        LyreBridge.log("error", "Usage: lyre_bridge_sql_status <resourceName>", {
+            resource = GetCurrentResourceName(),
+        })
+        return
+    end
+
+    local result = LyreBridge.SQL.getResourceMigrations(resourceName)
+    if not result or result.ok == false then
+        LyreBridge.log("error", result and result.message or "Unable to read SQL migration status.", {
+            resource = resourceName,
+            code = result and result.code,
+        })
+        return
+    end
+
+    local rows = result.data or {}
+    LyreBridge.log("info", "SQL migration status.", {
+        resource = resourceName,
+        migrations = #rows,
+    })
+
+    for _, row in ipairs(rows) do
+        LyreBridge.log(row.status == "applied" and "info" or "warn", "SQL migration.", {
+            resource = resourceName,
+            id = row.id,
+            status = row.status,
+            checksum = row.checksum,
+            error = row.error,
+        })
+    end
+end, true)
+
+local function formatFrameworkSql(identity)
+    local parts = {}
+
+    for _, item in ipairs(identity.sql and identity.sql.frameworkFiles or {}) do
+        parts[#parts + 1] = tostring(item.framework) .. ":" .. tostring(item.files)
+    end
+
+    return #parts > 0 and table.concat(parts, ",") or "none"
+end
+
+local function logIdentityDetails(identity)
+    for _, file in ipairs(identity.bridge and identity.bridge.client or {}) do
+        LyreBridge.log("info", "Resource client bridge file.", {
+            resource = identity.resource,
+            path = file,
+        })
+    end
+
+    for _, file in ipairs(identity.bridge and identity.bridge.server or {}) do
+        LyreBridge.log("info", "Resource server bridge file.", {
+            resource = identity.resource,
+            path = file,
+        })
+    end
+
+    for _, entry in ipairs(identity.sql and identity.sql.files or {}) do
+        LyreBridge.log("info", "Resource common SQL file.", {
+            resource = identity.resource,
+            id = entry.id,
+            path = entry.path,
+            required = entry.required,
+        })
+    end
+
+    for framework, entries in pairs(identity.sql and identity.sql.frameworks or {}) do
+        for _, entry in ipairs(entries) do
+            LyreBridge.log("info", "Resource framework SQL file.", {
+                resource = identity.resource,
+                framework = framework,
+                id = entry.id,
+                path = entry.path,
+                required = entry.required,
+            })
+        end
+    end
+end
+
+RegisterCommand("lyre_bridge_resource", function(source, args)
+    if source ~= 0 and not IsPlayerAceAllowed(source, "lyre_bridge.check") then
+        return
+    end
+
+    local resourceName = args[1]
+    if not resourceName or resourceName == "" then
+        local resources = LyreBridge.listRegisteredResources()
+        LyreBridge.log("info", "Registered resources: " .. table.concat(resources, ", "), {
+            count = #resources,
+        })
+        return
+    end
+
+    local identity = LyreBridge.getResourceIdentity(resourceName)
+    if not identity then
+        LyreBridge.log("error", "Resource is not registered.", {
+            resource = resourceName,
+            hint = "Check lyre_bridge/resources/" .. resourceName .. "/resource.lua",
+        })
+        return
+    end
+
+    LyreBridge.log("info", "Resource identity.", {
+        resource = identity.resource,
+        path = identity.path,
+        clientBridgeFiles = identity.bridge and identity.bridge.clientFiles or 0,
+        serverBridgeFiles = identity.bridge and identity.bridge.serverFiles or 0,
+        defaultBridgeCandidates = identity.bridge and table.concat(identity.bridge.defaultCandidates or {}, ",") or "none",
+        sqlFiles = identity.sql and identity.sql.commonFiles or 0,
+        frameworkSql = formatFrameworkSql(identity),
+    })
+
+    local verbose = tostring(args[2] or "") == "verbose" or tostring(args[2] or "") == "details"
+    if verbose then
+        logIdentityDetails(identity)
+    end
 end, true)
