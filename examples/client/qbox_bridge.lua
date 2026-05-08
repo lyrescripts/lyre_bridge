@@ -4,7 +4,7 @@ _G.bridge = _G.bridge or {}
 _G.bridge.QBOX = _G.bridge.QBOX or {}
 
 function _G.bridge.QBOX.autoDetect()
-    return GetResourceState("qbx_core") == "started"
+    return LyreBridge.isStarted("qbx_core")
 end
 
 function _G.bridge.QBOX:init()
