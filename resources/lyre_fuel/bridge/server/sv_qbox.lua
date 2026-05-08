@@ -6,7 +6,7 @@ _G.bridge[this] = {}
 _G.bridge[this].supportsItemMetadata = true
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("qbx_core") == "started"
+	return LyreBridge.isStarted("qbx_core")
 end
 
 local bridge = _G.bridge[this]
