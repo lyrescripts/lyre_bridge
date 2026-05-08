@@ -14,6 +14,151 @@ local internalBridgeMethods = internals.internalBridgeMethods or {}
 local currentResourceName = internals.currentResourceName or Core.currentResourceName or function()
     return "unknown"
 end
+
+local function requireFrameworkObject(bridge, frameworkName, resourceName, getter)
+    if bridge.object ~= nil then
+        return bridge.object
+    end
+
+    if not Core.isStarted(resourceName, 0) then
+        error("Framework resource `" .. resourceName .. "` is not started for `" .. frameworkName .. "`.")
+    end
+
+    local ok, object = pcall(getter)
+    if not ok then
+        error("Unable to load `" .. frameworkName .. "` object from `" .. resourceName .. "`: " .. tostring(object))
+    end
+
+    if object == nil then
+        error("Framework `" .. frameworkName .. "` from `" .. resourceName .. "` returned nil.")
+    end
+
+    bridge.object = object
+    return object
+end
+
+local defaultBridgeFactories = {
+    ESX = function()
+        return {
+            autoDetect = function()
+                return Core.isStarted("es_extended")
+            end,
+
+            init = function(self)
+                return requireFrameworkObject(self, "ESX", "es_extended", function()
+                    return exports["es_extended"]:getSharedObject()
+                end)
+            end,
+        }
+    end,
+
+    QBOX = function()
+        return {
+            autoDetect = function()
+                return Core.isStarted("qbx_core")
+            end,
+
+            init = function(self)
+                return requireFrameworkObject(self, "QBOX", "qbx_core", function()
+                    return exports["qbx_core"]
+                end)
+            end,
+        }
+    end,
+
+    QBCORE = function()
+        return {
+            autoDetect = function()
+                return Core.isStarted("qb-core")
+            end,
+
+            init = function(self)
+                return requireFrameworkObject(self, "QBCORE", "qb-core", function()
+                    return exports["qb-core"]:GetCoreObject()
+                end)
+            end,
+        }
+    end,
+
+    STANDALONE = function()
+        return {
+            autoDetect = function()
+                return true
+            end,
+
+            init = function()
+                return true
+            end,
+        }
+    end,
+
+    EXAMPLE = function()
+        return {
+            autoDetect = function()
+                return false
+            end,
+
+            init = function()
+                return true
+            end,
+        }
+    end,
+}
+
+local function registerDefaultBridgeCandidate(registry, name)
+    local factory = defaultBridgeFactories[name]
+    if type(factory) ~= "function" then
+        return
+    end
+
+    local defaults = factory()
+    if type(registry[name]) == "table" then
+        for key, value in pairs(defaults) do
+            if registry[name][key] == nil then
+                registry[name][key] = value
+            end
+        end
+
+        registry[name].__lyreDefaultHydrated = true
+        return
+    end
+
+    defaults.__lyreDefaultCandidate = true
+    registry[name] = defaults
+end
+
+function Core.registerDefaultBridgeCandidates(side, registry)
+    if side ~= "client" and side ~= "server" then
+        return registry
+    end
+
+    if type(registry) == "table" and type(registry.__lyre) == "table" then
+        return registry
+    end
+
+    registry = registry or {}
+    _G.bridge = registry
+
+    registerDefaultBridgeCandidate(registry, "ESX")
+    registerDefaultBridgeCandidate(registry, "QBOX")
+    registerDefaultBridgeCandidate(registry, "QBCORE")
+    registerDefaultBridgeCandidate(registry, "STANDALONE")
+    registerDefaultBridgeCandidate(registry, "EXAMPLE")
+
+    return registry
+end
+
+function Core.bridgeCandidate(bridgeName)
+    local normalizedName = Core.resolveBridgeName(bridgeName)
+    _G.bridge = _G.bridge or {}
+
+    if type(_G.bridge[normalizedName]) ~= "table" then
+        _G.bridge[normalizedName] = {}
+    end
+
+    return _G.bridge[normalizedName], normalizedName
+end
+
 function Core.decorateBridge(bridge, context)
     if type(bridge) ~= "table" then
         return bridge
@@ -87,6 +232,91 @@ local function sortedBridgeNames(registry)
     return names
 end
 
+local function rememberActiveBridge(resourceName, side, bridge)
+    if type(resourceName) ~= "string" or resourceName == "" or type(side) ~= "string" then
+        return
+    end
+
+    Core.activeBridges = Core.activeBridges or {}
+    Core.activeBridges[resourceName] = Core.activeBridges[resourceName] or {}
+    Core.activeBridges[resourceName][side] = bridge
+end
+
+function Core.getActiveBridge(resourceName, side)
+    if type(resourceName) ~= "string" or resourceName == "" or type(side) ~= "string" then
+        return nil
+    end
+
+    return Core.activeBridges
+        and Core.activeBridges[resourceName]
+        and Core.activeBridges[resourceName][side]
+        or nil
+end
+
+function Core.getActiveBridgeInfo(resourceName, side)
+    local activeBridge = Core.getActiveBridge(resourceName, side)
+    if type(activeBridge) ~= "table" then
+        return nil
+    end
+
+    local methods = {}
+    for key, value in pairs(activeBridge) do
+        if type(key) == "string" and type(value) == "function" and string.sub(key, 1, 2) ~= "__" then
+            methods[#methods + 1] = key
+        end
+    end
+
+    table.sort(methods)
+
+    return {
+        resource = activeBridge.__lyre and activeBridge.__lyre.resource or resourceName,
+        side = activeBridge.__lyre and activeBridge.__lyre.side or side,
+        framework = activeBridge.__lyre and activeBridge.__lyre.framework or nil,
+        loadedAt = activeBridge.__lyre and activeBridge.__lyre.loadedAt or nil,
+        methods = methods,
+    }
+end
+
+local function addRequiredMethod(target, seen, methodName)
+    if type(methodName) ~= "string" or methodName == "" or seen[methodName] then
+        return
+    end
+
+    seen[methodName] = true
+    target[#target + 1] = methodName
+end
+
+local function inferRequiredBridgeMethods(registry, explicitRequired, options)
+    local required = {}
+    local seen = {}
+
+    if type(explicitRequired) == "table" then
+        for _, methodName in ipairs(explicitRequired) do
+            addRequiredMethod(required, seen, methodName)
+        end
+    end
+
+    if options and options.inferRequiredMethods == false then
+        return #required > 0 and required or nil
+    end
+
+    for _, candidate in pairs(registry or {}) do
+        if type(candidate) == "table" and candidate.__lyreDefaultCandidate ~= true then
+            for methodName, value in pairs(candidate) do
+                if type(value) == "function"
+                    and not internalBridgeMethods[methodName]
+                    and string.sub(methodName, 1, 2) ~= "__"
+                then
+                    addRequiredMethod(required, seen, methodName)
+                end
+            end
+        end
+    end
+
+    table.sort(required)
+    return #required > 0 and required or nil
+end
+
 local function detectBridge(registry, bridgeName, context)
     local bridge = registry[bridgeName]
     if not bridge then
@@ -109,6 +339,7 @@ end
 function Core.setupBridge(side, registry, config, options)
     options = options or {}
     registry = registry or _G.bridge
+    registry = Core.registerDefaultBridgeCandidates(side, registry)
 
     local resourceName = options.resource or currentResourceName()
     local context = {
@@ -117,10 +348,11 @@ function Core.setupBridge(side, registry, config, options)
     }
 
     if type(registry) ~= "table" then
-        return false, Core.fail("bridge_registry_missing", "No bridge registry is loaded before setup.", context)
+        return false, Core.fail("bridge_registry_missing", "No bridge registry is loaded before setup. Check the resource identity file and adapter names under `lyre_bridge/resources/<resource>/bridge`.", context)
     end
 
     local requestedBridge = options.bridge or (type(config) == "table" and config.bridge) or "auto_detect"
+    local requiredMethods = inferRequiredBridgeMethods(registry, options.required, options)
 
     if type(registry.__lyre) == "table" and type(registry.__lyre.framework) == "string" then
         local requestedName = nil
@@ -135,12 +367,13 @@ function Core.setupBridge(side, registry, config, options)
         context.framework = registry.__lyre.framework
         Core.decorateBridge(registry, context)
 
-        local valid, validationError = Core.validateBridge(registry, options.required, context)
+        local valid, validationError = Core.validateBridge(registry, requiredMethods, context)
         if not valid then
             return false, validationError
         end
 
         _G.bridge = registry
+        rememberActiveBridge(resourceName, side or "shared", registry)
         return true, registry
     end
 
@@ -197,12 +430,13 @@ function Core.setupBridge(side, registry, config, options)
 
     Core.decorateBridge(selectedBridge, context)
 
-    local valid, validationError = Core.validateBridge(selectedBridge, options.required, context)
+    local valid, validationError = Core.validateBridge(selectedBridge, requiredMethods, context)
     if not valid then
         return false, validationError
     end
 
     _G.bridge = selectedBridge
+    rememberActiveBridge(resourceName, side or "shared", selectedBridge)
     Core.log("debug", "Bridge ready: " .. tostring(selectedName), context)
 
     return true, selectedBridge
