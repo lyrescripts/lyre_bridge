@@ -5,7 +5,7 @@ local this = "ESX"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("es_extended") == "started"
+	return LyreBridge.isStarted("es_extended")
 end
 
 local bridge = _G.bridge[this]
