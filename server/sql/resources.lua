@@ -268,6 +268,11 @@ local function applySqlEntry(resourceName, entry, options, summary)
         if skipPrepared and Statements.isPreparedLicenseStatement(statement) then
             fileSummary.skipped = fileSummary.skipped + 1
             summary.skipped = summary.skipped + 1
+        elseif Statements.isEventStatement(statement) and not SQL.config.autoSqlEvents and not options.allowEvents then
+            fileSummary.skipped = fileSummary.skipped + 1
+            summary.skipped = summary.skipped + 1
+            summary.warnings[#summary.warnings + 1] = "mysql_event_sql_skipped"
+            Core.log("warn", "Skipped MySQL event SQL because lyre_bridge:autoSqlEvents is disabled.", statementContext)
         else
             statement = Statements.normalize(statement)
 
@@ -311,6 +316,10 @@ function SQL.ensureResourceSchema(resourceName, options)
 
     local entries, framework, definition = resolveResourceSql(resourceName, options)
     if #entries == 0 then
+        if definition and definition.sql and definition.sql.required == true then
+            return Core.fail("resource_sql_missing", "Resource requires SQL, but no SQL files were discovered or declared.", context)
+        end
+
         return Private.result(true, {
             skipped = true,
             reason = "no_resource_sql",
