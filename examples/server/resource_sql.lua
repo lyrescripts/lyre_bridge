@@ -1,15 +1,17 @@
--- Example: register SQL for a third-party resource.
+-- Example: resource SQL is auto-discovered when files follow the convention.
 --[[
-LyreBridge.registerResource("my_resource", {
-    path = "custom/resources/my_resource",
+LyreBridge.registerResource("my_resource")
+
+-- Discovered automatically:
+-- resources/my_resource/sql/import.sql
+-- resources/my_resource/sql/import_esx.sql
+-- resources/my_resource/sql/import_qb.sql
+
+-- Use an explicit declaration only for uncommon paths:
+LyreBridge.registerResource("custom_resource", {
     sql = {
         files = {
-            { id = "main", path = "sql/my_resource.sql", required = true, order = 10 },
-        },
-        frameworkFiles = {
-            ESX = {
-                { id = "esx_items", path = "sql/my_resource_esx.sql", order = 20 },
-            },
+            { id = "custom_schema", path = "sql/custom_schema.sql", required = true, order = 10 },
         },
     },
 })
