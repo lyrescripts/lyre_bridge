@@ -9,6 +9,7 @@ SQL._private = Private
 
 SQL.config = SQL.config or {
     autoSql = true,
+    autoSqlEvents = false,
     strict = false,
     migrationTable = "lyre_bridge_migrations",
     importFile = "import.sql",
@@ -24,6 +25,7 @@ local function boolConvar(name, default)
 end
 
 SQL.config.autoSql = boolConvar("lyre_bridge:autoSql", SQL.config.autoSql)
+SQL.config.autoSqlEvents = boolConvar("lyre_bridge:autoSqlEvents", SQL.config.autoSqlEvents)
 SQL.config.strict = boolConvar("lyre_bridge:sqlStrict", SQL.config.strict)
 
 function Private.result(ok, data, code, message, context)
