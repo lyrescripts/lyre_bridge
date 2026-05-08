@@ -50,6 +50,7 @@ function Core.prepareResourceSql(resourceName, config, options)
     end
 
     sqlOptions.strict = resourceSqlStrict(resourceName, sqlOptions.strict == true or options.strict == true)
+    sqlOptions.framework = options.framework or sqlOptions.framework
     sqlOptions.bridge = options.bridge or sqlOptions.bridge or (type(config) == "table" and config.bridge)
 
     return Core.ensureResourceSql(resourceName, sqlOptions)
@@ -63,7 +64,7 @@ function Core.setupServerResourceBridge(config, options)
     Core._serverBridgeSetup = Core._serverBridgeSetup or {}
 
     if Core._serverBridgeSetup[resourceName] then
-        return true, _G.bridge
+        return true, Core.getActiveBridge(resourceName, "server") or _G.bridge
     end
 
     local loaded, loadError = Core.loadResourceBridgeFiles("server", resourceName, options)
@@ -76,16 +77,6 @@ function Core.setupServerResourceBridge(config, options)
     end
 
     Core._serverBridgeSetup[resourceName] = true
-
-    local sqlSuccess, sqlResult = Core.prepareResourceSql(resourceName, config, options)
-    if not sqlSuccess then
-        Core._serverBridgeSetup[resourceName] = nil
-        Core.log("error", sqlResult and sqlResult.message or "Automatic SQL preparation failed.", {
-            resource = resourceName,
-            side = "server",
-        })
-        return false, sqlResult
-    end
 
     local setupOptions = {}
     for key, value in pairs(options) do
@@ -103,6 +94,24 @@ function Core.setupServerResourceBridge(config, options)
             side = "server",
         })
         return false, result
+    end
+
+    local sqlOptions = {}
+    for key, value in pairs(options) do
+        sqlOptions[key] = value
+    end
+
+    sqlOptions.framework = result and result.__lyre and result.__lyre.framework or sqlOptions.framework
+
+    local sqlSuccess, sqlResult = Core.prepareResourceSql(resourceName, config, sqlOptions)
+    if not sqlSuccess then
+        Core._serverBridgeSetup[resourceName] = nil
+        Core.log("error", sqlResult and sqlResult.message or "Automatic SQL preparation failed.", {
+            resource = resourceName,
+            side = "server",
+            framework = sqlOptions.framework or "unknown",
+        })
+        return false, sqlResult
     end
 
     return true, result
