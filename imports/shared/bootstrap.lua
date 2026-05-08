@@ -2,7 +2,7 @@ LyreBridge = LyreBridge or {}
 
 local Core = LyreBridge
 
-Core.version = Core.version or "1.1.0"
+Core.version = Core.version or "1.2.0"
 Core.config = Core.config or {}
 
 function Core.currentResourceName()
@@ -36,6 +36,7 @@ end
 Core.modules = Core.modules or { shared = {}, client = {}, server = {} }
 Core._stateCache = Core._stateCache or {}
 Core.resources = Core.resources or {}
+Core.activeBridges = Core.activeBridges or {}
 Core._resourceConfigDefaults = Core._resourceConfigDefaults or {}
 Core._internals = Core._internals or {}
 
