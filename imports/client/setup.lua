@@ -10,7 +10,7 @@ function Core.setupClientResourceBridge(config, options)
     Core._clientBridgeSetup = Core._clientBridgeSetup or {}
 
     if Core._clientBridgeSetup[resourceName] then
-        return true, _G.bridge
+        return true, Core.getActiveBridge(resourceName, "client") or _G.bridge
     end
 
     local loaded, loadError = Core.loadResourceBridgeFiles("client", resourceName, options)
