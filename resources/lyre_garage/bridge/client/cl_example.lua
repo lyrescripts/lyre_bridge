@@ -31,7 +31,7 @@ function bridge:applyVehicleProperties(vehicle, properties)
 	-- Edit this function to match your framework's functions
 
 	-- VehicleDeformation integration
-	if GetResourceState("VehicleDeformation") == "started" then
+	if LyreBridge.isStarted("VehicleDeformation") then
 		local deformation = properties["lyre_garage-deformation"]
 		if deformation then
 			exports["VehicleDeformation"]:SetVehicleDeformation(vehicle, deformation)
@@ -48,7 +48,7 @@ function bridge:getVehicleProperties(vehicle)
 	local properties = {}
 
 	-- VehicleDeformation integration
-	if GetResourceState("VehicleDeformation") == "started" then
+	if LyreBridge.isStarted("VehicleDeformation") then
 		local deformation = exports["VehicleDeformation"]:GetVehicleDeformation(vehicle)
 		if deformation then
 			properties["lyre_garage-deformation"] = deformation

@@ -5,7 +5,7 @@ local this = "ESX"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("es_extended") == "started"
+	return LyreBridge.isStarted("es_extended")
 end
 
 local bridge = _G.bridge[this]
@@ -1009,7 +1009,7 @@ function bridge:onVehicleDelete(vehicle)
 	end
 
 	-- AdvancedParking integration
-	if GetResourceState("AdvancedParking") == "started" then
+	if LyreBridge.isStarted("AdvancedParking") then
 		exports["AdvancedParking"]:DeleteVehicle(vehicle)
 	end
 end

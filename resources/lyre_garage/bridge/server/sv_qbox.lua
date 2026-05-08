@@ -5,7 +5,7 @@ local this = "QBOX"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("qbx_core") == "started"
+	return LyreBridge.isStarted("qbx_core")
 end
 
 local bridge = _G.bridge[this]
@@ -1069,7 +1069,7 @@ function bridge:onVehicleDelete(vehicle)
 	end
 
 	-- AdvancedParking integration
-	if GetResourceState("AdvancedParking") == "started" then
+	if LyreBridge.isStarted("AdvancedParking") then
 		exports["AdvancedParking"]:DeleteVehicle(vehicle)
 	end
 end

@@ -5,7 +5,7 @@ local this = "QBOX"
 _G.bridge[this] = {}
 
 _G.bridge[this].autoDetect = function()
-	return GetResourceState("qbx_core") == "started"
+	return LyreBridge.isStarted("qbx_core")
 end
 
 local bridge = _G.bridge[this]
@@ -32,7 +32,7 @@ function bridge:applyVehicleProperties(vehicle, properties)
 	end
 
 	-- VehicleDeformation integration
-	if GetResourceState("VehicleDeformation") == "started" then
+	if LyreBridge.isStarted("VehicleDeformation") then
 		local deformation = properties["lyre_garage-deformation"]
 		if deformation then
 			exports["VehicleDeformation"]:SetVehicleDeformation(vehicle, deformation)
@@ -52,7 +52,7 @@ function bridge:getVehicleProperties(vehicle)
 	end
 
 	-- VehicleDeformation integration
-	if GetResourceState("VehicleDeformation") == "started" then
+	if LyreBridge.isStarted("VehicleDeformation") then
 		local deformation = exports["VehicleDeformation"]:GetVehicleDeformation(vehicle)
 		if deformation then
 			properties["lyre_garage-deformation"] = deformation

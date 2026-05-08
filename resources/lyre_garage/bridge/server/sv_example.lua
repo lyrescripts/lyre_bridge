@@ -487,7 +487,7 @@ function bridge:onVehicleDelete(vehicle)
 	end
 
 	-- AdvancedParking integration
-	if GetResourceState("AdvancedParking") == "started" then
+	if LyreBridge.isStarted("AdvancedParking") then
 		exports["AdvancedParking"]:DeleteVehicle(vehicle)
 	end
 end
