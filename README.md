@@ -5,13 +5,17 @@
 It provides:
 - deterministic bridge auto detection with aliases for ESX, QBCore, Qbox, standalone and example/custom bridges;
 - one central compatibility folder per Lyre resource;
+- convention-first resource discovery, so each resource usually has a one-line identity file instead of manual file lists;
 - runtime adapter loading from the central resource registry, so manifests do not duplicate framework file lists;
+- active bridge info tracking per resource and side, while keeping `_G.bridge` for existing resource code;
+- default ESX, QBCore, Qbox, Standalone and Example bridge candidates, so resources do not need boilerplate adapters just to fetch framework objects;
 - central shared config for repeated options such as locale, bridge, update checks, background blur and interact system;
 - lazy modules that load only when a script asks for them;
 - provider registries for third-party integrations such as fuel, vehicle keys, inventory, usable items, society accounts and offline accounts;
 - thin import entrypoints that load smaller shared, client and server modules;
 - a dedicated resource registry module with a runtime consistency check;
 - wrapped bridge calls with structured errors instead of silent failures;
+- automatic bridge contract inference from loaded adapters, followed by strict selected-bridge validation;
 - shared client modules for common features such as notifications, target, vehicle keys, fuel and progress;
 - client inventory item checks for context/target visibility;
 - automatic SQL preparation from the central resource registry;
@@ -62,11 +66,14 @@ SQL is prepared automatically when `lyre_bridge:autoSql` is enabled. The bridge 
 registered SQL files once per checksum and records applied migrations in
 `lyre_bridge_migrations`. If automatic SQL is disabled, import the SQL files from
 `lyre_bridge/resources/<resource>/sql/` manually before starting the dependent resource.
+MySQL event statements are skipped by default because many hosts disable the required
+EVENT privilege; enable `lyre_bridge:autoSqlEvents` only when the database supports it.
 
 Recommended production convars:
 
 ```cfg
 set lyre_bridge:autoSql true
+set lyre_bridge:autoSqlEvents false
 set lyre_bridge:sqlStrict false
 set lyre_bridge:debug false
 set lyre_bridge:failHard false
@@ -78,8 +85,10 @@ setr lyre_bridge:interact marker
 Troubleshooting checklist:
 
 - If a resource cannot find `bridge`, confirm `lyre_bridge` starts first and the resource manifest imports `@lyre_bridge/imports/shared.lua`, `@lyre_bridge/imports/client.lua`, and `@lyre_bridge/imports/server.lua`.
+- If a resource identity looks wrong, run `lyre_bridge_resource <resource>` and confirm the generated bridge and SQL counts.
 - If inventory, target, dispatch, fuel or vehicle keys do not bind to the expected resource, enable `lyre_bridge:debug true` and force the provider with the matching convar.
 - If SQL is skipped, run `lyre_bridge_check`, inspect the registered resource SQL files, then run `lyre_bridge_sql <resource> force <framework>` only when you need a manual framework branch.
+- If SQL ran before and you need the recorded result, run `lyre_bridge_sql_status <resource>`.
 - If a dependency is optional, the bridge should fall back quietly or log a clear warning. If it is required, keep it in the resource `dependencies` block.
 
 ## Common client bridge contract
@@ -102,9 +111,12 @@ Common client behavior belongs in `imports/client.lua`, not in every resource ad
 - `hasItem(itemName, amount)`
 - `sendDispatchAlert(payload, options)`
 
+ESX, QBCore, Qbox and Example candidates are registered by the core. A resource does not need adapter files just to detect a framework or fetch the shared object.
+When an adapter only adds resource methods, use `LyreBridge.bridgeCandidate("QBOX")` and the core will hydrate missing detection/init defaults.
+
 Resource adapters should only define:
 
-- `init()` for framework startup and shared objects;
+- custom `init()` logic when this resource needs more than the default framework object;
 - resource-specific methods such as vehicle properties, player data, groups or inventory helpers;
 - overrides only when a resource genuinely needs behavior different from the shared module.
 
@@ -170,29 +182,55 @@ lyre_bridge/
       bridge/client/client.lua
 ```
 
-Every `resources/<resource>/resource.lua` registers that resource in the core:
-- `bridge.client` and `bridge.server` list the open adapter files;
-- `sql.files` lists always-on SQL files;
-- `sql.frameworkFiles` lists framework-specific SQL files;
-- `requiresTables` lets optional SQL skip cleanly when a legacy table is missing.
+Every `resources/<resource>/resource.lua` registers that resource in the core.
+For normal resources the file is intentionally tiny:
+
+```lua
+LyreBridge.registerResource("lyre_fuel")
+```
+
+The registry then auto-discovers:
+
+- `bridge/client/cl_esx.lua`, `cl_qbox.lua`, `cl_qbcore.lua`, `cl_standalone.lua`, `cl_example.lua`;
+- short adapter names such as `bridge/client/esx.lua`;
+- matching `bridge/server/sv_*.lua` or short server adapter names;
+- target shims such as `bridge/client/client.lua`;
+- common SQL from `sql/import.sql`;
+- framework SQL from `sql/import_esx.sql`, `sql/import_qb.sql`, `sql/import_qbcore.sql`, and `sql/import_qbox.sql`;
+- optional inventory seed SQL from `sql/inventory_items/esx.sql`, guarded by the `items` table check.
 
 The registry intentionally has no `locked` flag. Packaging and escrow behavior
 come from each resource manifest, so the bridge registry only describes files
 that the runtime must load or validate.
 
+See `docs/resources.md` for the short resource authoring guide.
+
 ## Adding a resource
 
-1. Create `resources/<resource>/resource.lua` and register the resource with `LyreBridge.registerResource(...)`.
-2. Put common SQL in `resources/<resource>/sql/*.sql`, then reference it from `sql.files`.
-3. Put ESX/QBCore-specific SQL in separate files and reference them from `sql.frameworkFiles`.
-4. Put only framework-specific adapter code in `bridge/client/*.lua` and `bridge/server/*.lua`.
+1. Create `resources/<resource>/resource.lua` with `LyreBridge.registerResource("<resource>")`.
+2. Put common SQL in `resources/<resource>/sql/import.sql`.
+3. Put framework SQL in `sql/import_esx.sql`, `sql/import_qb.sql`, `sql/import_qbcore.sql`, or `sql/import_qbox.sql`.
+4. Put framework-specific adapter code in convention files under `bridge/client/` and `bridge/server/` only when the resource needs custom behavior.
 5. In the resource `fxmanifest.lua`, import only `@lyre_bridge/imports/shared.lua`, `@lyre_bridge/imports/client.lua`, and `@lyre_bridge/imports/server.lua` before scripts that call `bridge`.
 6. In the resource, call `setupClientBridge()` and `setupServerBridge()` once during startup.
+7. Run `tools\check_bridge_pack.ps1`.
 
-New adapters should first rely on the defaults injected by `imports/client.lua` and `imports/server.lua`.
+New adapters should first rely on the default framework candidates and the defaults injected by `imports/client.lua` and `imports/server.lua`.
 Add adapter methods only when the resource needs a different behavior or a feature the central modules cannot safely guess.
 
-The setup functions load `resources/<resource>/resource.lua`, then load the bridge files listed for the requested side. The registry is the source of truth; do not list `resources/<resource>/bridge/...` files in every resource manifest.
+The setup functions load `resources/<resource>/resource.lua`, generate the resource identity, then load the bridge files discovered for the requested side. Manual file lists are still supported for uncommon paths, but convention files should be the default.
+When a resource must not run without custom files, declare that explicitly:
+
+```lua
+LyreBridge.registerResource("my_resource", {
+    bridge = {
+        required = { client = true, server = true },
+    },
+    sql = {
+        required = true,
+    },
+})
+```
 
 ## Adding a provider
 
@@ -278,25 +316,24 @@ That makes updates safer because the core imports can change without overwriting
 1. `@lyre_bridge/imports/shared.lua` creates the local `LyreBridge` runtime inside the consuming resource, then loads the smaller files in `imports/shared/*.lua`.
 2. The resource config is wrapped with `LyreBridge.createResourceConfig(...)`, so common values such as `locale`, `bridge`, `backgroundBlur` and `interactSystem` can come from global or per-resource convars.
 3. `@lyre_bridge/imports/client.lua` and `@lyre_bridge/imports/server.lua` load their own smaller modules from `imports/client/*.lua` and `imports/server/*.lua`.
-4. The resource calls `setupClientBridge()` or `setupServerBridge()`. These wrappers load the resource definition and framework adapter files from `lyre_bridge/resources/<resource>/resource.lua`.
-5. Framework adapter files populate `_G.bridge` with candidates such as `ESX`, `QBCORE`, `QBOX`, `STANDALONE` or `EXAMPLE`.
-6. `LyreBridge.setupBridge(...)` selects the configured bridge or auto-detects one, calls its `init()`, validates required methods, decorates the selected bridge with shared defaults, then replaces `_G.bridge` with the active adapter.
+4. The resource calls `setupClientBridge()` or `setupServerBridge()`. These wrappers load the resource identity from `lyre_bridge/resources/<resource>/resource.lua`, discover convention files, and load the adapter files for that side.
+5. `LyreBridge.setupBridge(...)` adds default `ESX`, `QBCORE`, `QBOX`, `STANDALONE` and `EXAMPLE` candidates, then merges any resource adapters discovered from the registry.
+6. It infers required resource-specific methods from loaded adapters, selects the configured bridge or auto-detects one, calls its `init()`, decorates it with shared defaults, validates the contract, then replaces `_G.bridge` with the active adapter.
 
-Server startup also calls `LyreBridge.prepareResourceSql(...)` before bridge setup.
-That function resolves the SQL files registered for the resource, picks the framework-specific SQL branch when needed, applies migrations once per checksum, and records the result in `lyre_bridge_migrations`.
+Server startup calls `LyreBridge.prepareResourceSql(...)` after the server bridge has been loaded and validated.
+That function resolves the SQL files discovered for the resource, uses the selected framework for the framework-specific SQL branch, applies migrations once per checksum, and records the result in `lyre_bridge_migrations`.
 
 ## Scaling notes
 
-- Resource state checks are cached through `lyre_bridge:stateCacheMs` to avoid repeated `GetResourceState` calls from common modules.
+- Resource state checks are cached through `lyre_bridge:stateCacheMs` to avoid repeated `GetResourceState` calls from common modules, and the cache is invalidated on resource start/stop events.
 - Client modules are lazy: target, notifications, fuel, vehicle keys and progress are only created when a resource calls the matching bridge method.
 - SQL is idempotent: `CREATE TABLE` and `INSERT INTO` statements are normalized, guarded `ALTER TABLE ... ADD ... IF NOT EXISTS` clauses are handled safely, and optional SQL can be skipped when required legacy tables are missing.
 - Per-resource setup is idempotent, so repeated `setupClientBridge()` or `setupServerBridge()` calls return the already selected bridge instead of re-running SQL or framework init.
 - Keep resource adapters small. Put common behavior in `imports/client.lua`, `imports/server.lua` or shared modules; keep adapters for framework-specific resource contracts.
 
-Qbox is part of the global auto-detect order. Every Lyre resource that ships
-framework adapters has explicit Qbox bridge files, so scripts can keep the
-template-style `setupClientBridge()` and `setupServerBridge()` calls without
-local bridge code.
+Qbox is part of the global auto-detect order. Resources only need explicit Qbox
+files when they implement Qbox-specific behavior; simple framework setup comes
+from the default bridge candidates.
 
 Every refactored resource depends on `lyre_bridge` and imports:
 - `@lyre_bridge/imports/shared.lua` in shared scripts, before the resource config;
@@ -309,6 +346,7 @@ Useful convars:
 
 ```cfg
 set lyre_bridge:autoSql true
+set lyre_bridge:autoSqlEvents false
 set lyre_bridge:sqlStrict false
 set lyre_bridge:debug false
 set lyre_bridge:failHard false
@@ -338,12 +376,15 @@ Manual SQL command:
 lyre_bridge_sql lyre_garage force ESX
 lyre_bridge_sql lyre_garage force QBCORE
 lyre_bridge_sql lyre_fuel force ESX
+lyre_bridge_sql lyre_tennis force ESX events
+lyre_bridge_sql_status lyre_garage
 ```
 
 Manual registry check:
 
 ```cfg
 lyre_bridge_check
+lyre_bridge_resource lyre_garage verbose
 ```
 
 This bridge is the source of truth for shared Lyre compatibility modules and provider registrations.
