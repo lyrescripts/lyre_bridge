@@ -1,7 +1,7 @@
 LyreBridge.registerProvider("client", "vehicleKeys", {
     name = "fivecode_carkeys",
     resource = "fivecode_carkeys",
-    priority = 20,
+    priority = 80,
     give = function(self, context)
         if context.vehicle and context.vehicle ~= 0 then
             local ok = pcall(function()

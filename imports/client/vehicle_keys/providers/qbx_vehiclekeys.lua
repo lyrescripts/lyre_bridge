@@ -1,7 +1,7 @@
 LyreBridge.registerProvider("client", "vehicleKeys", {
     name = "qbx_vehiclekeys",
     resource = "qbx_vehiclekeys",
-    priority = 110,
+    priority = 10,
     isAvailable = function(self, context)
         return LyreBridge.isStarted(self.resource)
             and context.vehicle
