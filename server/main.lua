@@ -167,13 +167,45 @@ RegisterCommand("lyre_bridge_sql_status", function(source, args)
     end
 
     local rows = result.data or {}
-    LyreBridge.log("info", "SQL migration status.", {
+    local counts = { applied = 0, warning = 0, failed = 0, other = 0 }
+
+    for _, row in ipairs(rows) do
+        if row.status == "applied" then
+            counts.applied = counts.applied + 1
+        elseif row.status == "warning" then
+            counts.warning = counts.warning + 1
+        elseif row.status == "failed" then
+            counts.failed = counts.failed + 1
+        else
+            counts.other = counts.other + 1
+        end
+    end
+
+    local summaryLevel = "info"
+    if counts.failed > 0 then
+        summaryLevel = "error"
+    elseif counts.warning > 0 or counts.other > 0 then
+        summaryLevel = "warn"
+    end
+
+    LyreBridge.log(summaryLevel, "SQL migration status.", {
         resource = resourceName,
         migrations = #rows,
+        applied = counts.applied,
+        warning = counts.warning,
+        failed = counts.failed,
+        other = counts.other,
     })
 
     for _, row in ipairs(rows) do
-        LyreBridge.log(row.status == "applied" and "info" or "warn", "SQL migration.", {
+        local rowLevel = "info"
+        if row.status == "failed" then
+            rowLevel = "error"
+        elseif row.status ~= "applied" then
+            rowLevel = "warn"
+        end
+
+        LyreBridge.log(rowLevel, "SQL migration.", {
             resource = resourceName,
             id = row.id,
             status = row.status,
