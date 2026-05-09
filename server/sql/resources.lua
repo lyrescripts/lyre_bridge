@@ -245,10 +245,10 @@ local function applySqlEntry(resourceName, entry, options, summary)
     end
 
     if exists and not options.force then
-        Core.log("warn", "Retrying SQL migration that did not finish cleanly.", {
+        Core.log("info", "Re-checking previously incomplete SQL migration.", {
             resource = resourceName,
             migration = migrationId,
-            status = existingMigration.status or "unknown",
+            previousStatus = existingMigration.status or "unknown",
         })
     end
 

@@ -173,27 +173,29 @@ function Core.applyModuleDefaults(bridge, context)
             end
         end
 
-        if bridge.__lyreUseAdapterUsableItems ~= true then
-            bridge.registerUsableItem = function(self, itemName, callback)
+        if type(bridge.registerUsableItem) ~= "function" then
+            function bridge:registerUsableItem(itemName, callback)
                 local module = Core.getModule("server", "usableItems")
                 return module and module.register(self, itemName, callback)
             end
         end
 
-        if bridge.__lyreUseAdapterSociety ~= true then
-            bridge.getSocietyMoney = function(self, jobName)
+        if type(bridge.getSocietyMoney) ~= "function" then
+            function bridge:getSocietyMoney(jobName)
                 local module = Core.getModule("server", "society")
                 return module and module.getMoney(self, jobName) or 0
             end
+        end
 
-            bridge.removeSocietyMoney = function(self, jobName, amount)
+        if type(bridge.removeSocietyMoney) ~= "function" then
+            function bridge:removeSocietyMoney(jobName, amount)
                 local module = Core.getModule("server", "society")
                 return module and module.removeMoney(self, jobName, amount) or false
             end
         end
 
-        if bridge.__lyreUseAdapterOfflineAccounts ~= true then
-            bridge.updateOfflinePlayerAccount = function(self, identifier, account, amount)
+        if type(bridge.updateOfflinePlayerAccount) ~= "function" then
+            function bridge:updateOfflinePlayerAccount(identifier, account, amount)
                 local module = Core.getModule("server", "offlineAccounts")
                 return module and module.update(self, identifier, account, amount) or false
             end

@@ -139,37 +139,49 @@ Core.registerModule("server", "inventory", function()
             return player
         end
 
-        local useAdapterInventory = bridge and bridge.__lyreUseAdapterInventory == true
-
-        if not useAdapterInventory then
+        if type(player.addItem) ~= "function" then
             function player.addItem(itemName, count, metadata)
                 return module.addItem(bridge, player, itemName, count, metadata)
             end
+        end
 
+        if type(player.removeItem) ~= "function" then
             function player.removeItem(itemName, count, slot)
                 return module.removeItem(bridge, player, itemName, count, slot)
             end
+        end
 
+        if type(player.getItemCount) ~= "function" then
             function player.getItemCount(itemName)
                 return module.getItemCount(bridge, player, itemName)
             end
+        end
 
+        if type(player.hasItem) ~= "function" then
             function player.hasItem(itemName, count)
                 return module.hasItem(bridge, player, itemName, count)
             end
+        end
 
+        if type(player.canCarryItem) ~= "function" then
             function player.canCarryItem(itemName, count)
                 return module.canCarryItem(bridge, player, itemName, count)
             end
+        end
 
+        if type(player.addAmmo) ~= "function" then
             function player.addAmmo(ammoItem, weaponName, amount)
                 return module.addAmmo(bridge, player, ammoItem, weaponName, amount)
             end
+        end
 
+        if type(player.setItemMetadata) ~= "function" then
             function player.setItemMetadata(itemName, slot, metadata)
                 return module.setItemMetadata(bridge, player, itemName, slot, metadata)
             end
+        end
 
+        if type(player.getItemBySlot) ~= "function" then
             function player.getItemBySlot(slot)
                 return module.getItemBySlot(bridge, player, slot)
             end

@@ -156,6 +156,8 @@ function Core.bridgeCandidate(bridgeName)
         _G.bridge[normalizedName] = {}
     end
 
+    _G.bridge[normalizedName].__lyreUserOverridden = true
+
     return _G.bridge[normalizedName], normalizedName
 end
 
@@ -300,15 +302,33 @@ local function inferRequiredBridgeMethods(registry, explicitRequired, options)
         return #required > 0 and required or nil
     end
 
+    -- A method is contractual only when every resource adapter declares it.
+    -- This avoids spurious failures when one framework gets a custom method
+    -- that other frameworks (often STANDALONE) intentionally do not provide.
+    local methodPresence = {}
+    local resourceCandidates = 0
+
     for _, candidate in pairs(registry or {}) do
-        if type(candidate) == "table" and candidate.__lyreDefaultCandidate ~= true then
+        if type(candidate) == "table"
+            and candidate.__lyreDefaultCandidate ~= true
+            and candidate.__lyreUserOverridden == true
+        then
+            resourceCandidates = resourceCandidates + 1
             for methodName, value in pairs(candidate) do
                 if type(value) == "function"
                     and not internalBridgeMethods[methodName]
                     and string.sub(methodName, 1, 2) ~= "__"
                 then
-                    addRequiredMethod(required, seen, methodName)
+                    methodPresence[methodName] = (methodPresence[methodName] or 0) + 1
                 end
+            end
+        end
+    end
+
+    if resourceCandidates > 0 then
+        for methodName, count in pairs(methodPresence) do
+            if count == resourceCandidates then
+                addRequiredMethod(required, seen, methodName)
             end
         end
     end

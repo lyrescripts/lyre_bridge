@@ -1,4 +1,5 @@
-local SQL = LyreBridge.SQL
+local Core = LyreBridge
+local SQL = Core.SQL
 local Private = SQL._private
 local Migrations = Private.migrations or {}
 
