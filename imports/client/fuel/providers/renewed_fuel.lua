@@ -1,1 +1,1 @@
-LyreBridge._fuelProviderHelpers.registerSetFuelExport("Renewed-Fuel", 180)
+LyreBridge._fuelProviderHelpers.registerStatebagFuel("Renewed-Fuel", 30)

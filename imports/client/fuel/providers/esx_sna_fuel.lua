@@ -1,1 +1,1 @@
-LyreBridge._fuelProviderHelpers.registerSetFuelExport("esx-sna-fuel", 30)
+LyreBridge._fuelProviderHelpers.registerSetFuelExport("esx-sna-fuel", 80)

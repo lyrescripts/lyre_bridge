@@ -1,1 +1,1 @@
-LyreBridge._fuelProviderHelpers.registerSetFuelExport("qb-sna-fuel", 160)
+LyreBridge._fuelProviderHelpers.registerSetFuelExport("qb-sna-fuel", 100)

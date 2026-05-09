@@ -1,1 +1,1 @@
-LyreBridge._fuelProviderHelpers.registerSetFuelExport("LegacyFuel", 20)
+LyreBridge._fuelProviderHelpers.registerSetFuelExport("LegacyFuel", 50)

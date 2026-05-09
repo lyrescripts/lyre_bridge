@@ -1,1 +1,1 @@
-LyreBridge._fuelProviderHelpers.registerSetFuelExport("BigDaddy-Fuel", 100)
+LyreBridge._fuelProviderHelpers.registerSetFuelExport("BigDaddy-Fuel", 120)
