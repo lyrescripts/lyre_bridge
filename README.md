@@ -57,6 +57,12 @@ ensure lyre_illegalmissions-murderer
 ensure lyre_tennis
 ```
 
+`lyre_illegalmissions` is the core illegal mission hub. Its official DLC resources
+(`atm`, `cartheft`, `gofast`, `moneytruck`, `murderer`) register through that parent
+resource and can be installed as a full set or individually. When
+`Config.autoStartDLCs` is enabled in `lyre_illegalmissions`, installed DLCs are
+started automatically and missing non-strict DLCs are skipped with a warning.
+
 Optional integrations are detected through providers when their resources are started:
 ESX, QBCore, Qbox, `ox_inventory`, `qb-inventory`, `qs-inventory`, target systems,
 notify systems, progress bars, fuel, vehicle keys, society accounts, dispatch and logs.
