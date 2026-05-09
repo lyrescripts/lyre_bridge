@@ -1,14 +1,5 @@
-_G.bridge = _G.bridge or {}
+local bridge = LyreBridge.bridgeCandidate("ESX")
 
-local this = "ESX"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("es_extended")
-end
-
-local bridge = _G.bridge[this]
 local playerSourceByIdentifierCache = {
 	lastUpdate = 0,
 	ttl = 1000,
@@ -47,13 +38,6 @@ RegisterNetEvent("esx:playerLoaded", invalidatePlayerIdentifierCache)
 --[[
 	BRIDGE FUNCTIONS
 ]]
-
----init
----@return void
----@public
-function bridge:init()
-	self.object = exports["es_extended"]:getSharedObject()
-end
 
 ---getPlayerFromId
 ---@param playerId number

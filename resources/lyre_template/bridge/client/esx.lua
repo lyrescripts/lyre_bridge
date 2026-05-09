@@ -1,21 +1,11 @@
-_G.bridge = _G.bridge or {}
-
-local this = "ESX"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("es_extended")
-end
-
-local bridge = _G.bridge[this]
-
-function bridge:init()
-	local ok, object = pcall(function()
-		return exports["es_extended"]:getSharedObject()
-	end)
-
-	if ok then
-		self.object = object
-	end
-end
+-- ESX-specific client overrides for this resource.
+--
+-- lyre_bridge already provides init/autoDetect and the default bridge methods
+-- (showNotification, giveVehicleKeys, getFuel, hasItem, …). Add ESX-only
+-- overrides below using the bridgeCandidate helper:
+--
+--     local bridge = LyreBridge.bridgeCandidate("ESX")
+--
+--     function bridge:revivePlayer(serverId)
+--         ExecuteCommand("revive " .. serverId)
+--     end

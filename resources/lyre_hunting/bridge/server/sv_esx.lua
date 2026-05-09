@@ -1,26 +1,4 @@
-_G.bridge = _G.bridge or {}
-
-local this = "ESX"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("es_extended")
-end
-
-local bridge = _G.bridge[this]
-
---[[
-	BRIDGE FUNCTIONS
-]]
-
----init
----@description Initializes the ESX bridge
----@return void
----@public
-function bridge:init()
-	self.object = exports["es_extended"]:getSharedObject()
-end
+local bridge = LyreBridge.bridgeCandidate("ESX")
 
 ---getPlayerFromId
 ---@description Gets a player object with helper methods from their server ID

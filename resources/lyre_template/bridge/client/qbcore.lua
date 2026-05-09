@@ -1,21 +1,11 @@
-_G.bridge = _G.bridge or {}
-
-local this = "QBCORE"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("qb-core")
-end
-
-local bridge = _G.bridge[this]
-
-function bridge:init()
-	local ok, object = pcall(function()
-		return exports["qb-core"]:GetCoreObject()
-	end)
-
-	if ok then
-		self.object = object
-	end
-end
+-- QBCore-specific client overrides for this resource.
+--
+-- lyre_bridge already provides init/autoDetect and the default bridge methods
+-- (showNotification, giveVehicleKeys, getFuel, hasItem, …). Add QBCore-only
+-- overrides below using the bridgeCandidate helper:
+--
+--     local bridge = LyreBridge.bridgeCandidate("QBCORE")
+--
+--     function bridge:revivePlayer(serverId)
+--         TriggerClientEvent("hospital:client:Revive", serverId)
+--     end

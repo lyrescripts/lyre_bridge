@@ -1,14 +1,10 @@
-_G.bridge = _G.bridge or {}
-
-local this = "STANDALONE"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return true
-end
-
-local bridge = _G.bridge[this]
-
-function bridge:init()
-end
+-- Standalone (no framework) server overrides for this resource.
+--
+-- lyre_bridge already wires the standalone bridge with sensible defaults.
+-- Add overrides below using the bridgeCandidate helper:
+--
+--     local bridge = LyreBridge.bridgeCandidate("STANDALONE")
+--
+--     function bridge:methodName(...)
+--         -- ...
+--     end

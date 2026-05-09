@@ -1,19 +1,9 @@
-_G.bridge = _G.bridge or {}
+local bridge = LyreBridge.bridgeCandidate("EXAMPLE")
 
-local this = "EXAMPLE"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	-- Customize this function
-	return false
+function bridge:autoDetect()
+    -- Customize this function
+    return false
 end
-
-local bridge = _G.bridge[this]
-
---[[
-	BRIDGE FUNCTIONS
-]]
 
 ---init
 ---@description Initializes the framework bridge
@@ -71,4 +61,3 @@ end
 function bridge:getIdFromIdentifier(identifier)
 	-- Edit this function to match your framework's functions
 end
-

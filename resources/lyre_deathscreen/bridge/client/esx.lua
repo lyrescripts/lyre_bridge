@@ -1,18 +1,4 @@
-_G.bridge = _G.bridge or {}
-
-local this = "ESX"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("es_extended")
-end
-
-local bridge = _G.bridge[this]
-
---[[
-	BRIDGE FUNCTIONS
-]]
+local bridge = LyreBridge.bridgeCandidate("ESX")
 
 ---init
 ---@return void

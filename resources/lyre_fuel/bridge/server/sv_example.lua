@@ -1,20 +1,11 @@
-_G.bridge = _G.bridge or {}
+local bridge = LyreBridge.bridgeCandidate("EXAMPLE")
 
-local this = "EXAMPLE"
+bridge.supportsItemMetadata = false
 
-_G.bridge[this] = {}
-_G.bridge[this].supportsItemMetadata = false
-
-_G.bridge[this].autoDetect = function()
-	-- Customize this function
-	return false
+function bridge:autoDetect()
+    -- Customize this function
+    return false
 end
-
-local bridge = _G.bridge[this]
-
---[[
-	BRIDGE FUNCTIONS
-]]
 
 ---init
 ---@description Initializes the framework bridge
@@ -102,4 +93,3 @@ function bridge:nonLiquidRefillAction(stationId, fuelType, amount)
 	-- If you want to use this, set Config.refillMission.nonLiquidRefillAction to "custom"
 	-- This is used for fuel types like electricity where mission refill doesn't make sense
 end
-

@@ -1,14 +1,4 @@
-_G.bridge = _G.bridge or {}
-
-local this = "QBOX"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("qbx_core")
-end
-
-local bridge = _G.bridge[this]
+local bridge = LyreBridge.bridgeCandidate("QBOX")
 
 local function hasAcePermission(source, permission)
 	return IsPlayerAceAllowed(source, permission) or IsPlayerAceAllowed(source, "group." .. permission)
@@ -29,13 +19,6 @@ end
 --[[
 	BRIDGE FUNCTIONS
 ]]
-
----init
----@return void
----@public
-function bridge:init()
-	self.object = exports["qbx_core"]
-end
 
 ---hasPermission
 ---Checks if a player has any of the required groups/permissions

@@ -1,23 +1,20 @@
-_G.bridge = _G.bridge or {}
+-- Example bridge server for a custom framework. Duplicate this file under a
+-- different name (e.g. `mycore.lua`) and edit the EXAMPLE → MYCORE constant
+-- to add a new framework integration without touching lyre_bridge.
 
-local this = "EXAMPLE"
+local bridge = LyreBridge.bridgeCandidate("EXAMPLE")
 
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	-- Customize this function
-	return false
+function bridge:autoDetect()
+    -- Return true when this framework is started on the server.
+    return false
 end
 
-local bridge = _G.bridge[this]
-
---[[
-	BRIDGE FUNCTIONS
-]]
-
----init
----@return void
----@public
 function bridge:init()
-	-- Customize this function, this function is executed when the bridge is detected. You can for example set self.object to the shared object of your framework.
+    -- Optional: cache framework references on self for later calls.
+    -- self.object = exports["my_framework"]:getSharedObject()
 end
+
+-- Add framework-specific overrides below.
+-- function bridge:getPlayerFromId(playerId)
+--     return self.object.GetPlayerFromId(playerId)
+-- end

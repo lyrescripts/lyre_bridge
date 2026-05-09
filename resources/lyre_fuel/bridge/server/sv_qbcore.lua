@@ -1,27 +1,6 @@
-_G.bridge = _G.bridge or {}
+local bridge = LyreBridge.bridgeCandidate("QBCORE")
 
-local this = "QBCORE"
-
-_G.bridge[this] = {}
-_G.bridge[this].supportsItemMetadata = true
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("qb-core")
-end
-
-local bridge = _G.bridge[this]
-
---[[
-	BRIDGE FUNCTIONS
-]]
-
----init
----@description Initializes the QBCore bridge
----@return void
----@public
-function bridge:init()
-	self.object = exports["qb-core"]:GetCoreObject()
-end
+bridge.supportsItemMetadata = true
 
 ---getPlayerFromId
 ---@description Gets a player object with helper methods from their server ID

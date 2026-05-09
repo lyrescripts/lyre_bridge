@@ -1,14 +1,4 @@
-_G.bridge = _G.bridge or {}
-
-local this = "QBCORE"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	return LyreBridge.isStarted("qb-core")
-end
-
-local bridge = _G.bridge[this]
+local bridge = LyreBridge.bridgeCandidate("QBCORE")
 
 -- ACE permissions cache with rate limiting
 local aceCache = {}
@@ -27,13 +17,6 @@ end)
 --[[
 	BRIDGE FUNCTIONS
 ]]
-
----init
----@return void
----@public
-function bridge:init()
-	self.object = exports["qb-core"]:GetCoreObject()
-end
 
 ---requestAcePermissions
 ---Requests ACE permissions from server (rate limited)

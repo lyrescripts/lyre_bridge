@@ -1,19 +1,9 @@
-_G.bridge = _G.bridge or {}
+local bridge = LyreBridge.bridgeCandidate("EXAMPLE")
 
-local this = "EXAMPLE"
-
-_G.bridge[this] = {}
-
-_G.bridge[this].autoDetect = function()
-	-- Return true when your framework/resource should use this bridge.
-	return false
+function bridge:autoDetect()
+    -- Return true when your framework/resource should use this bridge.
+    return false
 end
-
-local bridge = _G.bridge[this]
-
---[[
-	BRIDGE FUNCTIONS
-]]
 
 ---init
 ---@return void
