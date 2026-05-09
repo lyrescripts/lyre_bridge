@@ -14,10 +14,6 @@ RegisterNetEvent("lyre_context:acePermissionsResult", function(results)
 	end
 end)
 
---[[
-	BRIDGE FUNCTIONS
-]]
-
 ---requestAcePermissions
 ---Requests ACE permissions from server (rate limited)
 ---@param permissions table Array of permission strings to check

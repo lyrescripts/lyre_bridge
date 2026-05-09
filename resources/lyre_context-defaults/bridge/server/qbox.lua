@@ -16,10 +16,6 @@ local function getPlayerGroups(object, source, primaryGroups)
 	return groups
 end
 
---[[
-	BRIDGE FUNCTIONS
-]]
-
 ---hasPermission
 ---Checks if a player has any of the required groups/permissions
 ---@param source number The player source

@@ -35,10 +35,6 @@ end
 AddEventHandler("playerDropped", invalidatePlayerIdentifierCache)
 RegisterNetEvent("esx:playerLoaded", invalidatePlayerIdentifierCache)
 
---[[
-	BRIDGE FUNCTIONS
-]]
-
 ---getPlayerFromId
 ---@param playerId number
 ---@return table

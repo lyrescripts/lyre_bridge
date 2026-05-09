@@ -36,10 +36,6 @@ end
 AddEventHandler("playerDropped", invalidatePlayerIdentifierCache)
 RegisterNetEvent("QBCore:Server:OnPlayerLoaded", invalidatePlayerIdentifierCache)
 
---[[
-	BRIDGE FUNCTIONS
-]]
-
 ---getPlayerFromId
 ---@param playerId number
 ---@return table
