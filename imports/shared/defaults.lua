@@ -173,6 +173,20 @@ function Core.applyModuleDefaults(bridge, context)
             end
         end
 
+        if type(bridge.hasLicense) ~= "function" then
+            function bridge:hasLicense(playerId, licenseType, callback)
+                local module = Core.getModule("server", "licenses")
+                return module and module.hasLicense(self, playerId, licenseType, callback) or false
+            end
+        end
+
+        if type(bridge.grantLicense) ~= "function" then
+            function bridge:grantLicense(playerId, licenseType)
+                local module = Core.getModule("server", "licenses")
+                return module and module.grantLicense(self, playerId, licenseType) or false
+            end
+        end
+
         if type(bridge.registerUsableItem) ~= "function" then
             function bridge:registerUsableItem(itemName, callback)
                 local module = Core.getModule("server", "usableItems")

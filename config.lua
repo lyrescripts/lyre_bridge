@@ -47,24 +47,4 @@ config.resourceConvars = config.resourceConvars or {
 		locale = { "lyre_illegalmissions:locale" },
 		interactSystem = { "lyre_illegalmissions:target" },
 	},
-	["lyre_illegalmissions-atm"] = {
-		locale = { "lyre_illegalmissions:locale" },
-		interactSystem = { "lyre_illegalmissions:target" },
-	},
-	["lyre_illegalmissions-cartheft"] = {
-		locale = { "lyre_illegalmissions:locale" },
-		interactSystem = { "lyre_illegalmissions:target" },
-	},
-	["lyre_illegalmissions-gofast"] = {
-		locale = { "lyre_illegalmissions:locale" },
-		interactSystem = { "lyre_illegalmissions:target" },
-	},
-	["lyre_illegalmissions-moneytruck"] = {
-		locale = { "lyre_illegalmissions:locale" },
-		interactSystem = { "lyre_illegalmissions:target" },
-	},
-	["lyre_illegalmissions-murderer"] = {
-		locale = { "lyre_illegalmissions:locale" },
-		interactSystem = { "lyre_illegalmissions:target" },
-	},
 }

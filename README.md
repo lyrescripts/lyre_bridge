@@ -55,11 +55,11 @@ ensure lyre_illegalmissions
 ensure lyre_tennis
 ```
 
-`lyre_illegalmissions` is the core illegal mission hub. Its official DLC resources
-(`atm`, `cartheft`, `gofast`, `moneytruck`, `murderer`) register through that parent
-resource and can be installed as a full set or individually. When
-`Config.autoStartDLCs` is enabled in `lyre_illegalmissions`, installed DLCs are
-started automatically and missing non-strict DLCs are skipped with a warning.
+`lyre_illegalmissions` is the core illegal mission hub. Its official mission modules
+(`atm`, `cartheft`, `gofast`, `moneytruck`, `murderer`) are bundled inside that
+resource under `dlcs/<name>/`; they are no longer registered as standalone bridge
+resources. Third-party DLC resources can still be whitelisted through
+`Config.dlcResources` in `lyre_illegalmissions`.
 
 Optional integrations are detected through providers when their resources are started:
 ESX, QBCore, Qbox, `ox_inventory`, `qb-inventory`, `qs-inventory`, target systems,
@@ -141,13 +141,15 @@ The server `players` module normalizes ESX, QBCore and Qbox player access and in
 - `getPlayerName(playerId)` returning `firstname, lastname`
 - `getPlayerDisplayName(playerId)`
 - `showNotification(playerId, message, type, duration)`
+- `hasLicense(playerId, licenseType, callback)`
+- `grantLicense(playerId, licenseType)`
 - `sendDispatchAlert(payload, options)`
 
 The normalized player wrapper exposes `source`, `raw`, `getIdentifier()`, `getName()`, `getFirstName()`, `getLastName()`, `showNotification(...)`, `getAccount(account)`, `removeAccountMoney(account, amount)` and `addAccountMoney(account, amount)`.
 The inventory provider module also normalizes `addItem(...)`, `removeItem(...)`, `getItemCount(...)`, `hasItem(...)`, `canCarryItem(...)`, `addAmmo(...)`, `setItemMetadata(...)` and `getItemBySlot(...)` unless an adapter explicitly opts into its own inventory implementation.
 
 That means repeated payment and identity code should not be copied into new adapters.
-Adapters should keep only the parts that are genuinely resource-specific, such as licenses, inventory rules, admin groups, vehicle persistence, custom society accounting or offline SQL updates.
+Adapters should keep only the parts that are genuinely resource-specific, such as `licenseMap`, inventory rules, admin groups, vehicle persistence, custom society accounting or offline SQL updates.
 
 Resource layout:
 
