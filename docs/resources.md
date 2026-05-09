@@ -15,17 +15,17 @@ resources/<resource>/
   resource.lua
   bridge/
     client/
-      cl_esx.lua       # only when this resource needs custom behavior
-      cl_qbox.lua
-      cl_qbcore.lua
-      cl_standalone.lua
-      cl_example.lua
+      esx.lua          # only when this resource needs custom behavior
+      qbox.lua
+      qbcore.lua
+      standalone.lua
+      example.lua
     server/
-      sv_esx.lua
-      sv_qbox.lua
-      sv_qbcore.lua
-      sv_standalone.lua
-      sv_example.lua
+      esx.lua
+      qbox.lua
+      qbcore.lua
+      standalone.lua
+      example.lua
   sql/
     import.sql
     import_esx.sql
@@ -35,8 +35,10 @@ resources/<resource>/
     inventory_items/esx.sql
 ```
 
-Short names are also supported for bridge adapters, such as `bridge/client/esx.lua`.
-Target shims can use `bridge/client/client.lua`.
+Side-prefixed names (`cl_esx.lua`, `sv_esx.lua`) are still accepted for
+backwards compatibility, but new resources should use the unprefixed form
+since the parent folder already identifies the side. Generic target shims
+can use `bridge/client/client.lua`.
 
 You do not need bridge files just to select ESX, QBCore, Qbox or Standalone. The core registers default framework candidates and fetches their shared objects automatically when a framework object is needed. Add a bridge adapter only when the resource needs custom methods or a custom `init()`.
 

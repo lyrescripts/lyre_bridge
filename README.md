@@ -197,9 +197,9 @@ LyreBridge.registerResource("lyre_fuel")
 
 The registry then auto-discovers:
 
-- `bridge/client/cl_esx.lua`, `cl_qbox.lua`, `cl_qbcore.lua`, `cl_standalone.lua`, `cl_example.lua`;
-- short adapter names such as `bridge/client/esx.lua`;
-- matching `bridge/server/sv_*.lua` or short server adapter names;
+- `bridge/client/esx.lua`, `qbox.lua`, `qbcore.lua`, `standalone.lua`, `example.lua`;
+- legacy side-prefixed names (`cl_esx.lua`, `sv_esx.lua`) for backwards compatibility;
+- matching `bridge/server/<framework>.lua`;
 - target shims such as `bridge/client/client.lua`;
 - common SQL from `sql/import.sql`;
 - framework SQL from `sql/import_esx.sql`, `sql/import_qb.sql`, `sql/import_qbcore.sql`, and `sql/import_qbox.sql`;
