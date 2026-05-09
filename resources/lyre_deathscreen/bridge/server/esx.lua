@@ -3,7 +3,6 @@ local bridge = LyreBridge.bridgeCandidate("ESX")
 ---getPlayerName
 ---@param playerId number
 ---@return string
----@public
 function bridge:getPlayerName(playerId)
 	local xPlayer = self.object.GetPlayerFromId(playerId)
 	if xPlayer and xPlayer.getName then
@@ -16,8 +15,6 @@ end
 ---showNotification
 ---@param playerId number
 ---@param message string
----@return void
----@public
 function bridge:showNotification(playerId, message)
 	local xPlayer = self.object.GetPlayerFromId(playerId)
 	if xPlayer and xPlayer.showNotification then
@@ -28,7 +25,6 @@ end
 ---getPlayersByJobs
 ---@param jobs table
 ---@return table
----@public
 function bridge:getPlayersByJobs(jobs)
 	local jobMap = {}
 	local players = {}
@@ -51,8 +47,6 @@ end
 
 ---clearDeathStatus
 ---@param playerId number
----@return void
----@public
 function bridge:clearDeathStatus(playerId)
 	-- ESX ambulance resources generally keep their death state client-side.
 end
