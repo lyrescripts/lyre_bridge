@@ -40,7 +40,12 @@ backwards compatibility, but new resources should use the unprefixed form
 since the parent folder already identifies the side. Generic target shims
 can use `bridge/client/client.lua`.
 
-You do not need bridge files just to select ESX, QBCore, Qbox or Standalone. The core registers default framework candidates and fetches their shared objects automatically when a framework object is needed. Add a bridge adapter only when the resource needs custom methods or a custom `init()`.
+You do not need bridge files just to select ESX, QBCore, Qbox or Standalone.
+The core registers default framework candidates and fetches their shared
+objects automatically when a framework object is needed. Add a bridge adapter
+only when the resource needs custom methods or a custom `init()`. The recommended
+pattern is "no file = no override": only create the framework adapters you
+actually need, and let the core hydrate the rest.
 
 For custom methods, start the adapter with the small helper and let the core hydrate detection/init:
 
@@ -61,7 +66,15 @@ end
 
 ## Validation
 
-The selected bridge is validated automatically. `setupBridge` infers the resource-specific method contract from the adapters that were loaded, then validates the selected framework after shared defaults are injected. If a method is missing, the error names the method, resource, side and framework.
+The selected bridge is validated automatically. `setupBridge` infers the
+resource-specific method contract as the **intersection** of methods declared
+across every loaded resource adapter (i.e. only methods present in *all*
+adapters are required). This avoids spurious failures when one adapter
+intentionally adds a framework-specific method other adapters do not provide,
+and lets `STANDALONE` load even when a resource only ships ESX/QBCORE/QBOX
+adapters. The selected framework is then validated after shared defaults are
+injected. If a method is missing, the error names the method, resource, side
+and framework.
 
 ## Adding a Resource
 

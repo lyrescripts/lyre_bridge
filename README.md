@@ -28,14 +28,17 @@ It provides:
 Required base resources:
 
 - `oxmysql`
-- `ox_lib`
 - `lyre_bridge`
+
+`ox_lib` is **not** required by `lyre_bridge` itself; only specific consumer
+resources depend on it (currently `lyre_fuel` and `lyre_illegalmissions`).
+Their own `dependencies` block handles that.
 
 Start the framework and third-party integrations first, then start the Lyre pack in this order:
 
 ```cfg
 ensure oxmysql
-ensure ox_lib
+ensure ox_lib            # only required if any consumer below depends on it
 ensure lyre_bridge
 
 ensure lyre_context
@@ -49,11 +52,6 @@ ensure lyre_fuel
 ensure lyre_garage
 ensure lyre_hunting
 ensure lyre_illegalmissions
-ensure lyre_illegalmissions-atm
-ensure lyre_illegalmissions-cartheft
-ensure lyre_illegalmissions-gofast
-ensure lyre_illegalmissions-moneytruck
-ensure lyre_illegalmissions-murderer
 ensure lyre_tennis
 ```
 
