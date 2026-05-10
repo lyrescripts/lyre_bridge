@@ -227,6 +227,48 @@ local function isPreparedLicenseStatement(statement)
         or upper:match("^DEALLOCATE%s+PREPARE%s+STMT")
 end
 
+local function isPreparedStatement(statement)
+    local upper = string.upper(statement)
+    return upper:match("^SET%s+@") ~= nil
+        or upper:match("^PREPARE%s+") ~= nil
+        or upper:match("^EXECUTE%s+") ~= nil
+        or upper:match("^DEALLOCATE%s+PREPARE%s+") ~= nil
+end
+
+local function hasPreparedKeyword(statements)
+    for _, statement in ipairs(statements) do
+        if string.upper(statement):match("^PREPARE%s+") then
+            return true
+        end
+    end
+    return false
+end
+
+local function executeBlock(statements, context)
+    if not MySQL or not MySQL.transaction or not MySQL.transaction.await then
+        return false, Core.fail("mysql_transaction_missing", "MySQL.transaction.await is not available.", context)
+    end
+
+    local queries = {}
+    for index, statement in ipairs(statements) do
+        queries[index] = statement
+    end
+
+    local ok, response = pcall(function()
+        return MySQL.transaction.await(queries, {})
+    end)
+
+    if not ok then
+        return false, Core.fail("mysql_query_failed", tostring(response), context)
+    end
+
+    if response == false then
+        return false, Core.fail("mysql_transaction_failed", "Prepared SQL block transaction failed.", context)
+    end
+
+    return true, response
+end
+
 local function isEventStatement(statement)
     local upper = string.upper(statement)
     return upper:match("^CREATE%s+EVENT%s+")
@@ -458,7 +500,10 @@ end
 
 Statements.checksum = checksum
 Statements.execute = executeStatement
+Statements.executeBlock = executeBlock
+Statements.hasPreparedKeyword = hasPreparedKeyword
 Statements.isEventStatement = isEventStatement
 Statements.isPreparedLicenseStatement = isPreparedLicenseStatement
+Statements.isPreparedStatement = isPreparedStatement
 Statements.normalize = normalizeStatement
 Statements.split = splitStatements

@@ -256,38 +256,120 @@ local function applySqlEntry(resourceName, entry, options, summary)
     local compat = Core.SQL_COMPAT or {}
     local skipPrepared = compat.skipPreparedLicenseBlocks and compat.skipPreparedLicenseBlocks[resourceName]
 
-    for index, rawStatement in ipairs(statements) do
-        local statement = Private.trim(rawStatement)
-        local statementContext = {
-            resource = resourceName,
-            migration = migrationId,
-            statement = index,
-            file = loadPath,
-        }
+    local units = {}
+    local cursor = 1
+    while cursor <= #statements do
+        local statement = Private.trim(statements[cursor])
 
-        if skipPrepared and Statements.isPreparedLicenseStatement(statement) then
-            fileSummary.skipped = fileSummary.skipped + 1
-            summary.skipped = summary.skipped + 1
-        elseif Statements.isEventStatement(statement) and not SQL.config.autoSqlEvents and not options.allowEvents then
-            fileSummary.skipped = fileSummary.skipped + 1
-            summary.skipped = summary.skipped + 1
-            summary.warnings[#summary.warnings + 1] = "mysql_event_sql_skipped"
-            Core.log("warn", "Skipped MySQL event SQL because lyre_bridge:autoSqlEvents is disabled.", statementContext)
-        else
-            statement = Statements.normalize(statement)
+        if Statements.isPreparedStatement(statement) then
+            local block = { statement }
+            local lookahead = cursor + 1
+            while lookahead <= #statements and Statements.isPreparedStatement(Private.trim(statements[lookahead])) do
+                block[#block + 1] = Private.trim(statements[lookahead])
+                lookahead = lookahead + 1
+            end
 
-            local statementOk, response = Statements.execute(statement, statementContext)
-            if statementOk then
-                fileSummary.applied = fileSummary.applied + 1
-                summary.applied = summary.applied + 1
+            if Statements.hasPreparedKeyword(block) and #block >= 2 then
+                units[#units + 1] = {
+                    kind = "block",
+                    statements = block,
+                    startIndex = cursor,
+                    endIndex = lookahead - 1,
+                }
             else
-                fileSummary.errors = fileSummary.errors + 1
-                summary.errors[#summary.errors + 1] = response
-                Core.log("error", "SQL statement failed: " .. tostring(response and response.message or response), statementContext)
+                for offset, blockStatement in ipairs(block) do
+                    units[#units + 1] = {
+                        kind = "single",
+                        statement = blockStatement,
+                        index = cursor + offset - 1,
+                    }
+                end
+            end
 
-                if SQL.config.strict or options.strict then
-                    Migrations.mark(migrationId, resourceName, hash, "failed", response and response.message or "unknown")
-                    return false, response
+            cursor = lookahead
+        else
+            units[#units + 1] = {
+                kind = "single",
+                statement = statement,
+                index = cursor,
+            }
+            cursor = cursor + 1
+        end
+    end
+
+    for _, unit in ipairs(units) do
+        if unit.kind == "block" then
+            local statementContext = {
+                resource = resourceName,
+                migration = migrationId,
+                statement = unit.startIndex,
+                statement_end = unit.endIndex,
+                file = loadPath,
+                operation = "ensure_schema_block",
+            }
+
+            local hasLicenseStatement = false
+            if skipPrepared then
+                for _, blockStatement in ipairs(unit.statements) do
+                    if Statements.isPreparedLicenseStatement(blockStatement) then
+                        hasLicenseStatement = true
+                        break
+                    end
+                end
+            end
+
+            if hasLicenseStatement then
+                fileSummary.skipped = fileSummary.skipped + #unit.statements
+                summary.skipped = summary.skipped + #unit.statements
+            else
+                local blockOk, response = Statements.executeBlock(unit.statements, statementContext)
+                if blockOk then
+                    fileSummary.applied = fileSummary.applied + #unit.statements
+                    summary.applied = summary.applied + #unit.statements
+                else
+                    fileSummary.errors = fileSummary.errors + 1
+                    summary.errors[#summary.errors + 1] = response
+                    Core.log("error", "SQL block failed: " .. tostring(response and response.message or response), statementContext)
+
+                    if SQL.config.strict or options.strict then
+                        Migrations.mark(migrationId, resourceName, hash, "failed", response and response.message or "unknown")
+                        return false, response
+                    end
+                end
+            end
+        else
+            local statement = unit.statement
+            local statementContext = {
+                resource = resourceName,
+                migration = migrationId,
+                statement = unit.index,
+                file = loadPath,
+            }
+
+            if skipPrepared and Statements.isPreparedLicenseStatement(statement) then
+                fileSummary.skipped = fileSummary.skipped + 1
+                summary.skipped = summary.skipped + 1
+            elseif Statements.isEventStatement(statement) and not SQL.config.autoSqlEvents and not options.allowEvents then
+                fileSummary.skipped = fileSummary.skipped + 1
+                summary.skipped = summary.skipped + 1
+                summary.warnings[#summary.warnings + 1] = "mysql_event_sql_skipped"
+                Core.log("warn", "Skipped MySQL event SQL because lyre_bridge:autoSqlEvents is disabled.", statementContext)
+            else
+                statement = Statements.normalize(statement)
+
+                local statementOk, response = Statements.execute(statement, statementContext)
+                if statementOk then
+                    fileSummary.applied = fileSummary.applied + 1
+                    summary.applied = summary.applied + 1
+                else
+                    fileSummary.errors = fileSummary.errors + 1
+                    summary.errors[#summary.errors + 1] = response
+                    Core.log("error", "SQL statement failed: " .. tostring(response and response.message or response), statementContext)
+
+                    if SQL.config.strict or options.strict then
+                        Migrations.mark(migrationId, resourceName, hash, "failed", response and response.message or "unknown")
+                        return false, response
+                    end
                 end
             end
         end
