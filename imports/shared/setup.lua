@@ -14,6 +14,66 @@ local internalBridgeMethods = internals.internalBridgeMethods or {}
 local currentResourceName = internals.currentResourceName or Core.currentResourceName or function()
     return "unknown"
 end
+local frameworkResources = {
+    ESX = "es_extended",
+    QBOX = "qbx_core",
+    QBCORE = "qb-core",
+}
+
+local function getResourceStateNow(resourceName)
+    if type(resourceName) ~= "string" or resourceName == "" or type(GetResourceState) ~= "function" then
+        return "missing"
+    end
+
+    return GetResourceState(resourceName)
+end
+
+local function clearFrameworkStateCache()
+    if type(Core._stateCache) ~= "table" then
+        return
+    end
+
+    for _, resourceName in pairs(frameworkResources) do
+        Core._stateCache[resourceName] = nil
+    end
+end
+
+local function waitForAutoDetect(delay)
+    delay = tonumber(delay) or 0
+    if type(Wait) == "function" then
+        Wait(delay)
+        return true
+    end
+
+    if type(Citizen) == "table" and type(Citizen.Wait) == "function" then
+        Citizen.Wait(delay)
+        return true
+    end
+
+    return false
+end
+
+local function frameworkResourceCanStillStart()
+    for _, resourceName in pairs(frameworkResources) do
+        local state = getResourceStateNow(resourceName)
+        if state == "starting" or state == "uninitialized" then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function hasActiveFrameworkResource()
+    for _, resourceName in pairs(frameworkResources) do
+        local state = getResourceStateNow(resourceName)
+        if state == "started" or state == "starting" then
+            return true
+        end
+    end
+
+    return false
+end
 
 local function requireFrameworkObject(bridge, frameworkName, resourceName, getter)
     if bridge.object ~= nil then
@@ -83,7 +143,7 @@ local defaultBridgeFactories = {
     STANDALONE = function()
         return {
             autoDetect = function()
-                return true
+                return not hasActiveFrameworkResource()
             end,
 
             init = function()
@@ -408,20 +468,47 @@ function Core.setupBridge(side, registry, config, options)
             return false, Core.fail("invalid_bridge", "Configured bridge `" .. tostring(requestedBridge) .. "` is not loaded.", context)
         end
     else
-        for _, bridgeName in ipairs(Core.getDetectionOrder(config, options)) do
-            local normalizedName = Core.resolveBridgeName(bridgeName)
-            if detectBridge(registry, normalizedName, context) then
-                selectedName = normalizedName
-                selectedBridge = registry[normalizedName]
+        local attempts = tonumber(options.autoDetectAttempts or Core.config.autoDetectAttempts) or 20
+        local delay = tonumber(options.autoDetectDelayMs or Core.config.autoDetectDelayMs) or 250
+
+        for attempt = 1, attempts do
+            clearFrameworkStateCache()
+
+            for _, bridgeName in ipairs(Core.getDetectionOrder(config, options)) do
+                local normalizedName = Core.resolveBridgeName(bridgeName)
+                if detectBridge(registry, normalizedName, context) then
+                    selectedName = normalizedName
+                    selectedBridge = registry[normalizedName]
+                    break
+                end
+            end
+
+            if selectedBridge or not frameworkResourceCanStillStart() or attempt >= attempts then
+                break
+            end
+
+            if not waitForAutoDetect(delay) then
                 break
             end
         end
 
         if not selectedBridge and options.allowUnorderedFallback ~= false then
-            for _, bridgeName in ipairs(sortedBridgeNames(registry)) do
-                if detectBridge(registry, bridgeName, context) then
-                    selectedName = bridgeName
-                    selectedBridge = registry[bridgeName]
+            for attempt = 1, attempts do
+                clearFrameworkStateCache()
+
+                for _, bridgeName in ipairs(sortedBridgeNames(registry)) do
+                    if detectBridge(registry, bridgeName, context) then
+                        selectedName = bridgeName
+                        selectedBridge = registry[bridgeName]
+                        break
+                    end
+                end
+
+                if selectedBridge or not frameworkResourceCanStillStart() or attempt >= attempts then
+                    break
+                end
+
+                if not waitForAutoDetect(delay) then
                     break
                 end
             end
