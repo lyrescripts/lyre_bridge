@@ -2,7 +2,7 @@ LyreBridge = LyreBridge or {}
 
 local Core = LyreBridge
 
-Core.version = Core.version or "1.2.0"
+Core.version = Core.version or "1.0.0"
 Core.config = Core.config or {}
 
 function Core.currentResourceName()

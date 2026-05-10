@@ -3,7 +3,7 @@ game("gta5")
 
 author("Lyre Scripts")
 description("Shared modular bridge core, lazy compatibility modules, and automatic SQL migrations for Lyre resources.")
-version("1.2.0")
+version("1.0.0")
 lua54("yes")
 
 escrow_ignore({
@@ -32,6 +32,7 @@ server_scripts({
     "server/sql/migrations.lua",
     "server/sql/statements.lua",
     "server/sql/resources.lua",
+    "server/version.lua",
     "server/main.lua",
     "custom/server/*.lua",
 })

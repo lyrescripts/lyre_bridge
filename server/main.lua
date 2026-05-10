@@ -56,6 +56,11 @@ end)
 
 CreateThread(function()
     Wait(0)
+
+    if LyreBridge.config.checkForUpdates and type(LyreBridge.performVersionCheck) == "function" then
+        LyreBridge.performVersionCheck()
+    end
+
     LyreBridge.log("debug", "Core ready.", {
         resource = GetCurrentResourceName(),
         version = LyreBridge.version,
