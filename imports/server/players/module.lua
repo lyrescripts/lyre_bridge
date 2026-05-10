@@ -3,6 +3,120 @@ local PlayerInternals = Core._serverPlayerInternals or {}
 
 Core.registerModule("server", "players", function()
     local module = {}
+
+    local function getNativeIdentifier(source)
+        source = tonumber(source)
+        if not source then
+            return nil
+        end
+
+        if type(GetPlayerIdentifierByType) == "function" then
+            local identifier = GetPlayerIdentifierByType(source, "license")
+            if not identifier or identifier == "" then
+                identifier = GetPlayerIdentifierByType(source, "license2")
+            end
+            if not identifier or identifier == "" then
+                identifier = GetPlayerIdentifierByType(source, "steam")
+            end
+            if not identifier or identifier == "" then
+                identifier = GetPlayerIdentifierByType(source, "fivem")
+            end
+
+            if identifier and identifier ~= "" then
+                return identifier
+            end
+        end
+
+        if type(GetPlayerIdentifier) ~= "function" then
+            return nil
+        end
+
+        local identifierCount = type(GetNumPlayerIdentifiers) == "function" and GetNumPlayerIdentifiers(source) or 0
+        for index = 0, identifierCount - 1 do
+            local identifier = GetPlayerIdentifier(source, index)
+            if identifier and identifier ~= "" then
+                return identifier
+            end
+        end
+
+        return nil
+    end
+
+    local function splitName(name)
+        name = tostring(name or "")
+        local firstName = name:match("([^%s]+)") or ""
+        local lastName = name:match("%s(.+)$") or ""
+        return firstName, lastName
+    end
+
+    local function createStandalonePlayer(source)
+        source = tonumber(source)
+        if not source or not GetPlayerName(source) then
+            return false
+        end
+
+        local player = {
+            source = source,
+            raw = nil,
+            standalone = true,
+        }
+
+        function player.getIdentifier()
+            return getNativeIdentifier(source) or ("source:" .. tostring(source))
+        end
+
+        function player.getName()
+            return GetPlayerName(source) or ("Player " .. tostring(source))
+        end
+
+        function player.getFirstName()
+            local firstName = splitName(player.getName())
+            return firstName
+        end
+
+        function player.getLastName()
+            local _, lastName = splitName(player.getName())
+            return lastName
+        end
+
+        function player.showNotification(message, notificationType, duration)
+            if Core.isStarted("ox_lib") then
+                TriggerClientEvent("ox_lib:notify", source, {
+                    description = message or "",
+                    type = notificationType or "inform",
+                    duration = duration or 5000,
+                })
+                return
+            end
+
+            TriggerClientEvent("chat:addMessage", source, {
+                args = { "Lyre", message or "" },
+            })
+        end
+
+        function player.getAccount()
+            return 0
+        end
+
+        function player.removeAccountMoney()
+            return false
+        end
+
+        function player.addAccountMoney()
+            return false
+        end
+
+        return player
+    end
+
+    local function wrapOrStandalone(player, source)
+        if player then
+            return player
+        end
+
+        return createStandalonePlayer(source)
+    end
+
     function module.getRawPlayer(bridge, source)
         local framework = PlayerInternals.frameworkName(bridge)
 
@@ -25,18 +139,18 @@ Core.registerModule("server", "players", function()
         local framework = PlayerInternals.frameworkName(bridge)
 
         if framework == "ESX" then
-            return PlayerInternals.wrapESXPlayer(PlayerInternals.getESXPlayer(source, bridge), source)
+            return wrapOrStandalone(PlayerInternals.wrapESXPlayer(PlayerInternals.getESXPlayer(source, bridge), source), source)
         end
 
         if framework == "QBCORE" then
-            return PlayerInternals.wrapQBPlayer(PlayerInternals.getQBPlayer(source, bridge), source)
+            return wrapOrStandalone(PlayerInternals.wrapQBPlayer(PlayerInternals.getQBPlayer(source, bridge), source), source)
         end
 
         if framework == "QBOX" then
-            return PlayerInternals.wrapQBoxPlayer(PlayerInternals.getQBoxPlayer(source, bridge), source, bridge and bridge.object)
+            return wrapOrStandalone(PlayerInternals.wrapQBoxPlayer(PlayerInternals.getQBoxPlayer(source, bridge), source, bridge and bridge.object), source)
         end
 
-        return false
+        return createStandalonePlayer(source)
     end
 
     function module.getPlayerIdentifier(bridge, source)
