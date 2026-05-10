@@ -14,6 +14,10 @@ local function queryAwait(method, query, params, context)
     return Private.queryAwait(method, query, params, context)
 end
 
+local function transactionAwait(queries, params, context)
+    return Private.transactionAwait(queries, params, context)
+end
+
 local function checksum(text)
     local hash = 7
 
@@ -225,6 +229,65 @@ local function isPreparedLicenseStatement(statement)
         or upper:match("^PREPARE%s+STMT")
         or upper:match("^EXECUTE%s+STMT")
         or upper:match("^DEALLOCATE%s+PREPARE%s+STMT")
+end
+
+local function isDynamicSqlSetStatement(statement)
+    local upper = string.upper(statement)
+    return upper:match("^SET%s+@[%w_]+%s*=") ~= nil
+end
+
+local function isPrepareStatement(statement)
+    return string.upper(statement):match("^PREPARE%s+[%w_]+%s+FROM%s+@[%w_]+") ~= nil
+end
+
+local function isExecuteStatement(statement)
+    return string.upper(statement):match("^EXECUTE%s+[%w_]+") ~= nil
+end
+
+local function isDeallocateStatement(statement)
+    return string.upper(statement):match("^DEALLOCATE%s+PREPARE%s+[%w_]+") ~= nil
+end
+
+local function normalizeBlockStatement(statement)
+    return normalizeStatement(trim(statement))
+end
+
+local function collectPreparedBlock(statements, startIndex)
+    local first = normalizeBlockStatement(statements[startIndex])
+    if not isDynamicSqlSetStatement(first) then
+        return nil, 1
+    end
+
+    local block = { first }
+    local index = startIndex + 1
+    local hasPrepare = false
+    local hasExecute = false
+
+    while index <= #statements do
+        local statement = normalizeBlockStatement(statements[index])
+
+        if isPrepareStatement(statement) then
+            hasPrepare = true
+            block[#block + 1] = statement
+        elseif isExecuteStatement(statement) then
+            hasExecute = true
+            block[#block + 1] = statement
+        elseif isDeallocateStatement(statement) then
+            block[#block + 1] = statement
+
+            if hasPrepare and hasExecute then
+                return block, #block
+            end
+
+            return nil, 1
+        else
+            return nil, 1
+        end
+
+        index = index + 1
+    end
+
+    return nil, 1
 end
 
 local function isEventStatement(statement)
@@ -456,8 +519,19 @@ local function executeStatement(statement, context)
     return false, response
 end
 
+local function executeStatementBlock(statements, context)
+    local ok, response = transactionAwait(statements, {}, context)
+    if ok then
+        return true, response
+    end
+
+    return false, response
+end
+
 Statements.checksum = checksum
+Statements.collectPreparedBlock = collectPreparedBlock
 Statements.execute = executeStatement
+Statements.executeBlock = executeStatementBlock
 Statements.isEventStatement = isEventStatement
 Statements.isPreparedLicenseStatement = isPreparedLicenseStatement
 Statements.normalize = normalizeStatement

@@ -256,7 +256,9 @@ local function applySqlEntry(resourceName, entry, options, summary)
     local compat = Core.SQL_COMPAT or {}
     local skipPrepared = compat.skipPreparedLicenseBlocks and compat.skipPreparedLicenseBlocks[resourceName]
 
-    for index, rawStatement in ipairs(statements) do
+    local index = 1
+    while index <= #statements do
+        local rawStatement = statements[index]
         local statement = Private.trim(rawStatement)
         local statementContext = {
             resource = resourceName,
@@ -264,6 +266,7 @@ local function applySqlEntry(resourceName, entry, options, summary)
             statement = index,
             file = loadPath,
         }
+        local consumedStatements = 1
 
         if skipPrepared and Statements.isPreparedLicenseStatement(statement) then
             fileSummary.skipped = fileSummary.skipped + 1
@@ -276,10 +279,19 @@ local function applySqlEntry(resourceName, entry, options, summary)
         else
             statement = Statements.normalize(statement)
 
-            local statementOk, response = Statements.execute(statement, statementContext)
+            local block, blockCount = Statements.collectPreparedBlock(statements, index)
+            local statementOk, response
+
+            if block and blockCount > 1 then
+                statementOk, response = Statements.executeBlock(block, statementContext)
+                consumedStatements = blockCount
+            else
+                statementOk, response = Statements.execute(statement, statementContext)
+            end
+
             if statementOk then
-                fileSummary.applied = fileSummary.applied + 1
-                summary.applied = summary.applied + 1
+                fileSummary.applied = fileSummary.applied + consumedStatements
+                summary.applied = summary.applied + consumedStatements
             else
                 fileSummary.errors = fileSummary.errors + 1
                 summary.errors[#summary.errors + 1] = response
@@ -291,6 +303,8 @@ local function applySqlEntry(resourceName, entry, options, summary)
                 end
             end
         end
+
+        index = index + consumedStatements
     end
 
     local marked, markError = Migrations.mark(migrationId, resourceName, hash, fileSummary.errors > 0 and "warning" or "applied", fileSummary.errors > 0 and "completed_with_warnings" or nil)

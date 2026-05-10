@@ -60,6 +60,26 @@ function Private.queryAwait(method, query, params, context)
     return true, response
 end
 
+function Private.transactionAwait(queries, params, context)
+    if not MySQL or not MySQL.transaction or not MySQL.transaction.await then
+        return false, Core.fail("mysql_transaction_missing", "MySQL.transaction.await is not available.", context)
+    end
+
+    local ok, response = pcall(function()
+        return MySQL.transaction.await(queries, params or {})
+    end)
+
+    if not ok then
+        return false, Core.fail("mysql_transaction_failed", tostring(response), context)
+    end
+
+    if response == false then
+        return false, Core.fail("mysql_transaction_failed", "MySQL transaction returned false.", context)
+    end
+
+    return true, response
+end
+
 function SQL.ready()
     return MySQL ~= nil and MySQL.query ~= nil and MySQL.query.await ~= nil
 end
@@ -110,16 +130,9 @@ function SQL.insert(query, params)
 end
 
 function SQL.transaction(queries, params)
-    if not MySQL or not MySQL.transaction or not MySQL.transaction.await then
-        return Core.fail("mysql_transaction_missing", "MySQL.transaction.await is not available.")
-    end
-
-    local ok, response = pcall(function()
-        return MySQL.transaction.await(queries, params or {})
-    end)
-
+    local ok, response = Private.transactionAwait(queries, params, { operation = "transaction" })
     if not ok then
-        return Core.fail("mysql_transaction_failed", tostring(response))
+        return response
     end
 
     return Private.result(true, response)
