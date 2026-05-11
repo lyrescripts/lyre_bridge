@@ -1,0 +1,161 @@
+local provider = LyreBridge.registerProvider("server", "players", "qbox", 5)
+
+function provider:detect()
+    return bridge.core:isStarted("qbx_core")
+end
+
+function provider:init()
+    self.object = exports.qbx_core
+end
+
+function provider:getPlayerFromId(playerId)
+    local qboxPlayer = self.object:GetPlayer(playerId)
+    if not qboxPlayer then
+        return false
+    end
+
+    local data = qboxPlayer.PlayerData or qboxPlayer
+    local charinfo = data.charinfo or {}
+
+    local player = {
+        source = data.source,
+        raw = qboxPlayer,
+    }
+
+    player.getIdentifier = function()
+        return data.citizenid or data.identifier
+    end
+
+    player.getName = function()
+        local first = charinfo.firstname or charinfo.firstName or ""
+        local last = charinfo.lastname or charinfo.lastName or ""
+        return (first .. " " .. last):gsub("^%s+", ""):gsub("%s+$", "")
+    end
+
+    player.getFirstName = function()
+        return charinfo.firstname or charinfo.firstName or ""
+    end
+
+    player.getLastName = function()
+        return charinfo.lastname or charinfo.lastName or ""
+    end
+
+    player.getJob = function()
+        return data.job
+    end
+
+    player.getAccount = function(account)
+        local key = ({ money = "cash", black_money = "crypto" })[account] or account or "cash"
+        return data.money and data.money[key] or 0
+    end
+
+    player.addAccountMoney = function(account, amount)
+        local key = ({ money = "cash", black_money = "crypto" })[account] or account or "cash"
+        qboxPlayer.Functions.AddMoney(key, amount, "")
+    end
+
+    player.removeAccountMoney = function(account, amount)
+        local key = ({ money = "cash", black_money = "crypto" })[account] or account or "cash"
+        qboxPlayer.Functions.RemoveMoney(key, amount, "")
+    end
+
+    player.showNotification = function(message, notificationType, duration)
+        TriggerClientEvent("ox_lib:notify", data.source, {
+            description = message,
+            type = notificationType or "inform",
+            duration = duration or 5000,
+        })
+    end
+
+    player.addItem = function(itemName, count, metadata)
+        exports.ox_inventory:AddItem(data.source, itemName, count, metadata)
+    end
+
+    player.removeItem = function(itemName, count)
+        exports.ox_inventory:RemoveItem(data.source, itemName, count)
+    end
+
+    player.getItemCount = function(itemName)
+        return exports.ox_inventory:Search(data.source, "count", itemName) or 0
+    end
+
+    player.hasLicense = function(licenseType)
+        local licenses = data.metadata and data.metadata.licences or {}
+        return licenses[licenseType] == true
+    end
+
+    player.grantLicense = function(licenseType)
+        local licenses = data.metadata and data.metadata.licences or {}
+        licenses[licenseType] = true
+        qboxPlayer.Functions.SetMetaData("licences", licenses)
+        return true
+    end
+
+    player.getAdminRank = function()
+        return data.group or "user"
+    end
+
+    return player
+end
+
+function provider:getPlayerFromIdentifier(identifier)
+    local qboxPlayer = self.object:GetPlayerByCitizenId(identifier)
+    if not qboxPlayer then
+        return false
+    end
+    return self:getPlayerFromId(qboxPlayer.PlayerData.source)
+end
+
+function provider:getIdFromIdentifier(identifier)
+    if not identifier then
+        return false
+    end
+
+    local qboxPlayer = self.object:GetPlayerByCitizenId(identifier)
+    if not qboxPlayer then
+        return false
+    end
+
+    return qboxPlayer.PlayerData.source
+end
+
+function provider:getOnlinePlayers()
+    local players = {}
+    for _, source in pairs(self.object:GetPlayers()) do
+        players[#players + 1] = self:getPlayerFromId(source)
+    end
+    return players
+end
+
+function provider:getOnlinePlayersByJob(jobName)
+    local players = {}
+    for _, source in pairs(self.object:GetPlayers()) do
+        local qboxPlayer = self.object:GetPlayer(source)
+        if qboxPlayer and qboxPlayer.PlayerData.job and qboxPlayer.PlayerData.job.name == jobName then
+            players[#players + 1] = self:getPlayerFromId(source)
+        end
+    end
+    return players
+end
+
+function provider:updateOfflinePlayerAccount(identifier, account, amount)
+    if not identifier or not account or not amount then
+        return false
+    end
+
+    local row = MySQL.single.await("SELECT money FROM players WHERE citizenid = ?", { identifier })
+    if not row then
+        return false
+    end
+
+    local key = ({ money = "cash", black_money = "crypto" })[account] or account or "cash"
+    local money = json.decode(row.money) or {}
+    money[key] = (money[key] or 0) + amount
+
+    local affected = MySQL.update.await(
+        "UPDATE players SET money = ? WHERE citizenid = ?",
+        { json.encode(money), identifier }
+    )
+
+    return (affected or 0) > 0
+end

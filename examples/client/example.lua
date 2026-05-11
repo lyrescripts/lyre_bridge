@@ -1,9 +1,0 @@
--- Add custom client modules here without touching the locked core.
--- Example:
--- LyreBridge.registerModule("client", "myTarget", function()
---     return {
---         addLocalEntity = function(entity, options)
---             return true
---         end,
---     }
--- end)

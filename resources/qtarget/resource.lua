@@ -1,1 +1,0 @@
-LyreBridge.registerResource("qtarget")

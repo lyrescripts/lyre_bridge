@@ -2,72 +2,38 @@ fx_version("cerulean")
 game("gta5")
 
 author("Lyre Scripts")
-description("Shared modular bridge core, lazy compatibility modules, and automatic SQL migrations for Lyre resources.")
-version("1.2.0")
+description("Provider-based compatibility bridge for the Lyre resource pack.")
+version("2.0.0")
 lua54("yes")
 
 escrow_ignore({
     "README.md",
-    "config.lua",
-    "imports/**/*.lua",
-    "custom/**/*.lua",
-    "examples/**/*.lua",
+    "engine/**/*.lua",
+    "utils/**/*.lua",
+    "bridges/**/*.lua",
     "resources/**/*.lua",
-    "resources/**/*.sql",
-    "schemas/**/*.lua",
+    "old/**/*",
 })
 
 shared_scripts({
-    "config.lua",
-    "imports/shared.lua",
+    "engine/registry.lua",
+    "engine/custom.lua",
+    "engine/resolver.lua",
+    "engine/bridge.lua",
+    "utils/**/*.lua",
+})
+
+client_scripts({
+    "bridges/client/**/*.lua",
 })
 
 server_scripts({
     "@oxmysql/lib/MySQL.lua",
-    "imports/server.lua",
-    "schemas/*.lua",
-    "resources/**/resource.lua",
-    "server/sql/core.lua",
-    "server/sql/schema.lua",
-    "server/sql/migrations.lua",
-    "server/sql/statements.lua",
-    "server/sql/resources.lua",
-    "server/main.lua",
-    "custom/server/*.lua",
-})
-
-client_scripts({
-    "imports/client.lua",
-    "client/*.lua",
-    "custom/client/*.lua",
+    "bridges/server/**/*.lua",
 })
 
 files({
-    "imports/**/*.lua",
     "resources/**/*.lua",
-    "resources/**/*.sql",
-})
-
-server_exports({
-    "CheckResourceDefinitions",
-    "EnsureResourceSchema",
-    "GetActiveBridgeInfo",
-    "GetResourceDefinition",
-    "GetResourceIdentity",
-    "ListRegisteredResources",
-    "SqlQuery",
-    "SqlSingle",
-    "SqlScalar",
-    "SqlUpdate",
-    "SqlInsert",
-    "SqlTransaction",
-    "SqlReady",
-    "GetResourceSqlMigrations",
-})
-
-exports({
-    "BridgeVersion",
-    "GetActiveBridgeInfo",
 })
 
 dependencies({
