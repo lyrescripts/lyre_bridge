@@ -164,6 +164,11 @@ function provider:revive(source)
     return true
 end
 
+function provider:clearDeathStatus(source)
+    -- ESX ambulance scripts keep death status client-side; nothing to clear server-side.
+    return true
+end
+
 function provider:updateOfflinePlayerAccount(identifier, account, amount)
     if not identifier or not account or not amount then
         return false

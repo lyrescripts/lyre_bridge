@@ -175,6 +175,14 @@ function provider:revive(source)
     return true
 end
 
+function provider:clearDeathStatus(source)
+    local qboxPlayer = self.object:GetPlayer(source)
+    if not qboxPlayer then return false end
+    qboxPlayer.Functions.SetMetaData("isdead", false)
+    qboxPlayer.Functions.SetMetaData("inlaststand", false)
+    return true
+end
+
 function provider:updateOfflinePlayerAccount(identifier, account, amount)
     if not identifier or not account or not amount then
         return false
