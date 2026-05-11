@@ -122,15 +122,52 @@ function provider:getOnlinePlayers()
     return players
 end
 
-function provider:getOnlinePlayersByJob(jobName)
+function provider:getOnlinePlayersByJob(jobs, onDutyOnly)
+    local jobMap = {}
+    if type(jobs) == "string" then
+        jobMap[jobs] = true
+    elseif type(jobs) == "table" then
+        for _, jobName in ipairs(jobs) do
+            jobMap[jobName] = true
+        end
+    end
+
     local players = {}
     for _, source in ipairs(self.object.Functions.GetPlayers()) do
         local qbPlayer = self.object.Functions.GetPlayer(source)
-        if qbPlayer and qbPlayer.PlayerData.job and qbPlayer.PlayerData.job.name == jobName then
-            players[#players + 1] = self:getPlayerFromId(source)
+        local job = qbPlayer and qbPlayer.PlayerData.job
+        if job and jobMap[job.name] then
+            if not onDutyOnly or job.onduty ~= false then
+                players[#players + 1] = self:getPlayerFromId(source)
+            end
         end
     end
     return players
+end
+
+function provider:getPlayersInZone(coords, radius, options)
+    options = options or {}
+    local players = {}
+
+    for _, source in ipairs(self.object.Functions.GetPlayers()) do
+        if not options.exceptions or not options.exceptions[source] then
+            local ped = GetPlayerPed(source)
+            local playerCoords = GetEntityCoords(ped)
+            if #(coords - playerCoords) <= radius then
+                if options.includeDead or GetEntityHealth(ped) > 0 then
+                    players[#players + 1] = self:getPlayerFromId(source)
+                end
+            end
+        end
+    end
+
+    return players
+end
+
+function provider:revive(source)
+    if not source then return false end
+    TriggerClientEvent("hospital:client:Revive", source)
+    return true
 end
 
 function provider:updateOfflinePlayerAccount(identifier, account, amount)
