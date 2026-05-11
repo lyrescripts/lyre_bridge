@@ -1,4 +1,4 @@
-LyreBridge.registerCustomResourceFunction("lyre_illegalmissions", "OnMissionEnd", function(missionType, success, teamMembers)
+LyreBridge.registerCustomResourceFunction("lyre_illegalmissions", "onMissionEnd", function(missionType, success, teamMembers)
     -- Custom logic when an illegal mission ends.
     -- missionType: string (e.g. "gofast", "atm", "cartheft", ...)
     -- success: boolean
