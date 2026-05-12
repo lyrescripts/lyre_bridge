@@ -8,6 +8,7 @@ lua54("yes")
 
 escrow_ignore({
     "README.md",
+    "config.lua",
     "engine/**/*.lua",
     "utils/**/*.lua",
     "bridges/**/*.lua",
@@ -16,7 +17,9 @@ escrow_ignore({
 })
 
 shared_scripts({
+    "config.lua",
     "engine/registry.lua",
+    "engine/configuration.lua",
     "engine/custom.lua",
     "engine/resolver.lua",
     "engine/bridge.lua",
@@ -29,6 +32,7 @@ client_scripts({
 
 server_scripts({
     "@oxmysql/lib/MySQL.lua",
+    "engine/version_check.lua",
     "bridges/server/**/*.lua",
 })
 
