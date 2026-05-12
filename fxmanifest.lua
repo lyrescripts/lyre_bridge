@@ -12,31 +12,29 @@ escrow_ignore({
     "engine/**/*.lua",
     "utils/**/*.lua",
     "bridges/**/*.lua",
+    "imports/**/*.lua",
     "resources/**/*.lua",
     "old/**/*",
 })
 
 shared_scripts({
-    "config.lua",
-    "engine/registry.lua",
-    "engine/configuration.lua",
-    "engine/custom.lua",
-    "engine/resolver.lua",
-    "engine/bridge.lua",
-    "utils/**/*.lua",
+    "imports/shared.lua",
 })
 
 client_scripts({
-    "bridges/client/**/*.lua",
+    "imports/client.lua",
 })
 
 server_scripts({
     "@oxmysql/lib/MySQL.lua",
-    "engine/version_check.lua",
-    "bridges/server/**/*.lua",
+    "imports/server.lua",
 })
 
 files({
+    "config.lua",
+    "engine/**/*.lua",
+    "utils/**/*.lua",
+    "bridges/**/*.lua",
     "resources/**/*.lua",
 })
 
