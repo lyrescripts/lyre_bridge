@@ -174,7 +174,7 @@ function provider:updateOfflinePlayerAccount(identifier, account, amount)
         return false
     end
 
-    local row = MySQL.single.await("SELECT accounts FROM users WHERE identifier = ?", { identifier })
+    local row = bridge.mysql:single("SELECT accounts FROM users WHERE identifier = ?", { identifier })
     if not row then
         return false
     end
@@ -186,7 +186,7 @@ function provider:updateOfflinePlayerAccount(identifier, account, amount)
 
     accounts[account] = accounts[account] + amount
 
-    local affected = MySQL.update.await(
+    local affected = bridge.mysql:update(
         "UPDATE users SET accounts = ? WHERE identifier = ?",
         { json.encode(accounts), identifier }
     )
