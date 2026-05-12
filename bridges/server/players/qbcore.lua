@@ -49,12 +49,13 @@ function provider:getPlayerFromId(playerId)
 
     player.addAccountMoney = function(account, amount)
         local key = ({ money = "cash", black_money = "crypto" })[account] or account or "cash"
-        qbPlayer.Functions.AddMoney(key, amount, "")
+        return qbPlayer.Functions.AddMoney(key, amount, "") ~= false
     end
 
     player.removeAccountMoney = function(account, amount)
+        if player.getAccount(account) < amount then return false end
         local key = ({ money = "cash", black_money = "crypto" })[account] or account or "cash"
-        qbPlayer.Functions.RemoveMoney(key, amount, "")
+        return qbPlayer.Functions.RemoveMoney(key, amount, "") ~= false
     end
 
     player.showNotification = function(message, notificationType, duration)

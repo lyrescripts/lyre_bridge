@@ -45,10 +45,13 @@ function provider:getPlayerFromId(playerId)
 
     player.addAccountMoney = function(account, amount)
         xPlayer.addAccountMoney(account, amount)
+        return true
     end
 
     player.removeAccountMoney = function(account, amount)
+        if player.getAccount(account) < amount then return false end
         xPlayer.removeAccountMoney(account, amount)
+        return true
     end
 
     player.showNotification = function(message)
