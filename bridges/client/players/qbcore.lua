@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "players", "qbcore", 20)
 
 function provider:detect()
-    return bridge.core:isStarted("qb-core")
+    return bridge.core.isStarted("qb-core")
 end
 
 function provider:init()
@@ -48,7 +48,7 @@ function provider:getAccount(accountName)
 end
 
 function provider:revive()
-    if bridge.core:isStarted("qb-ambulancejob") then
+    if bridge.core.isStarted("qb-ambulancejob") then
         pcall(function()
             exports["qb-ambulancejob"]:RevivePlayer()
         end)

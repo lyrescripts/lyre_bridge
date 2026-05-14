@@ -13,10 +13,12 @@ end
 
 loadFile("config.lua")
 loadFile("engine/registry.lua")
+loadFile("engine/resolver.lua")
+loadFile("engine/spec.lua")
+loadFile("engine/bridge.lua")
+
 loadFile("engine/configuration.lua")
 loadFile("engine/custom.lua")
-loadFile("engine/resolver.lua")
-loadFile("engine/bridge.lua")
 
 loadFile("utils/log.lua")
 loadFile("utils/isStarted.lua")

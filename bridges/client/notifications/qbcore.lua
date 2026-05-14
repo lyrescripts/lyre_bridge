@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "notifications", "qbcore", 60)
 
 function provider:detect()
-    return bridge.core:isStarted("qb-core")
+    return bridge.core.isStarted("qb-core")
 end
 
 function provider:init()

@@ -3,7 +3,7 @@ local DECOR = "_FUEL_LEVEL"
 local provider = LyreBridge.registerProvider("client", "fuel", "frfuel", 160)
 
 function provider:detect()
-    return bridge.core:isStarted("FRFuel")
+    return bridge.core.isStarted("FRFuel")
 end
 
 function provider:set(vehicle, fuel)

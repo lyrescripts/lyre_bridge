@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "vehicle_keys", "wasabi_carlock", 40)
 
 function provider:detect()
-    return bridge.core:isStarted("wasabi_carlock")
+    return bridge.core.isStarted("wasabi_carlock")
 end
 
 function provider:give(vehicle, plate)

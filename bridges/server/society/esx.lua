@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("server", "society", "esx", 10)
 
 function provider:detect()
-    return bridge.core:isStarted("es_extended") and bridge.core:isStarted("esx_addonaccount")
+    return bridge.core.isStarted("es_extended") and bridge.core.isStarted("esx_addonaccount")
 end
 
 function provider:getMoney(jobName)

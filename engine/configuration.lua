@@ -14,15 +14,43 @@ for key in pairs(LyreBridge.config) do
     end
 end
 
+function LyreBridge.resolveConfigValue(resourceName, key, fallback)
+    local override = readConvar("lyre_bridge:" .. resourceName .. ":" .. key)
+    if override ~= nil then
+        return override
+    end
+    if fallback ~= nil then
+        return fallback
+    end
+    return LyreBridge.config[key]
+end
+
 function LyreBridge.registerResourceConfiguration(resourceName, config)
     config = config or {}
-    return setmetatable(config, {
-        __index = function(_, key)
-            local override = readConvar("lyre_bridge:" .. resourceName .. ":" .. key)
-            if override ~= nil then
-                return override
-            end
-            return LyreBridge.config[key]
-        end,
-    })
+    local resolved = {}
+
+    for key, value in pairs(LyreBridge.config) do
+        resolved[key] = value
+    end
+    for key, value in pairs(config) do
+        resolved[key] = value
+    end
+    for key in pairs(resolved) do
+        local override = readConvar("lyre_bridge:" .. resourceName .. ":" .. key)
+        if override ~= nil then
+            resolved[key] = override
+        end
+    end
+
+    return resolved
+end
+
+function bridge.config.register(config)
+    local resourceName = GetInvokingResource() or GetCurrentResourceName()
+    return LyreBridge.registerResourceConfiguration(resourceName, config)
+end
+
+function bridge.config.get(key, fallback)
+    local resourceName = GetInvokingResource() or GetCurrentResourceName()
+    return LyreBridge.resolveConfigValue(resourceName, key, fallback)
 end

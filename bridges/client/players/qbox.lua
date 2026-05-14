@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "players", "qbox", 5)
 
 function provider:detect()
-    return bridge.core:isStarted("qbx_core")
+    return bridge.core.isStarted("qbx_core")
 end
 
 function provider:init()

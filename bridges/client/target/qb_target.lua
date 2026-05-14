@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "target", "qb_target", 50)
 
 function provider:detect()
-    return bridge.core:isStarted("qb-target")
+    return bridge.core.isStarted("qb-target")
 end
 
 function provider:addLocalEntity(entity, options)

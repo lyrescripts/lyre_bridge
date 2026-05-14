@@ -9,28 +9,29 @@ lua54("yes")
 escrow_ignore({
     "README.md",
     "config.lua",
+    "imports.lua",
     "engine/**/*.lua",
     "utils/**/*.lua",
     "bridges/**/*.lua",
-    "imports/**/*.lua",
+    "bootstrap/**/*.lua",
     "resources/**/*.lua",
-    "old/**/*",
 })
 
 shared_scripts({
-    "imports/shared.lua",
+    "bootstrap/shared.lua",
 })
 
 client_scripts({
-    "imports/client.lua",
+    "bootstrap/client.lua",
 })
 
 server_scripts({
     "@oxmysql/lib/MySQL.lua",
-    "imports/server.lua",
+    "bootstrap/server.lua",
 })
 
 files({
+    "imports.lua",
     "config.lua",
     "engine/**/*.lua",
     "utils/**/*.lua",

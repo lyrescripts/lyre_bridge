@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("server", "mysql", "oxmysql", 10)
 
 function provider:detect()
-    return bridge.core:isStarted("oxmysql")
+    return bridge.core.isStarted("oxmysql")
 end
 
 function provider:query(query, params)

@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("server", "inventory", "ox_inventory", 10)
 
 function provider:detect()
-    return bridge.core:isStarted("ox_inventory")
+    return bridge.core.isStarted("ox_inventory")
 end
 
 function provider:addItem(source, itemName, count, metadata)

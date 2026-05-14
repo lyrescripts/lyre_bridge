@@ -1,6 +1,6 @@
 local cache = {}
 
-function bridge.core:isStarted(resourceName)
+function bridge.core.isStarted(resourceName)
     if type(resourceName) ~= "string" or resourceName == "" then
         return false
     end

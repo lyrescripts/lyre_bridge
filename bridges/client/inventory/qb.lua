@@ -1,8 +1,8 @@
 local provider = LyreBridge.registerProvider("client", "inventory", "qb", 50)
 
 function provider:detect()
-    return bridge.core:isStarted("qb-core")
-    and not bridge.core:isStarted("ox_inventory")
+    return bridge.core.isStarted("qb-core")
+    and not bridge.core.isStarted("ox_inventory")
 end
 
 function provider:init()

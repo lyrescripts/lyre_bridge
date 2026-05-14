@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "notifications", "ox_lib", 10)
 
 function provider:detect()
-    return bridge.core:isStarted("ox_lib") and lib and type(lib.notify) == "function"
+    return bridge.core.isStarted("ox_lib") and lib and type(lib.notify) == "function"
 end
 
 function provider:show(message, notificationType, duration)

@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "fuel", "ox_fuel", 20)
 
 function provider:detect()
-    return bridge.core:isStarted("ox_fuel")
+    return bridge.core.isStarted("ox_fuel")
 end
 
 function provider:set(vehicle, fuel)

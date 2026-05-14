@@ -1,20 +1,20 @@
-function bridge.core:log(type, msg, invoker)
-    type = type and string.lower(type) or "info"
+function bridge.core.log(logType, msg, invoker)
+    logType = logType and string.lower(logType) or "info"
 
-    if type == "debug" and not LyreBridge.debug then
+    if logType == "debug" and not LyreBridge.debug then
         return
     end
 
     local prefix
-    if type == "error" then
+    if logType == "error" then
         prefix = "^1[ERROR]^0 "
-    elseif type == "warning" then
+    elseif logType == "warning" then
         prefix = "^3[WARNING]^0 "
-    elseif type == "debug" then
+    elseif logType == "debug" then
         prefix = "^6[DEBUG]^0 "
     else
         prefix = "^2[INFO]^0 "
     end
 
-    print("^5(^2" .. string.upper(invoker or GetCurrentResourceName()) .. "^5) ^4- " .. prefix .. msg)
+    print("^5(^2" .. string.upper(invoker or GetInvokingResource() or GetCurrentResourceName()) .. "^5) ^4- " .. prefix .. msg)
 end

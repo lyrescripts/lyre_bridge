@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "players", "esx", 10)
 
 function provider:detect()
-    return bridge.core:isStarted("es_extended")
+    return bridge.core.isStarted("es_extended")
 end
 
 function provider:init()
@@ -55,7 +55,7 @@ function provider:getAccount(accountName)
 end
 
 function provider:revive()
-    if bridge.core:isStarted("esx_ambulancejob") then
+    if bridge.core.isStarted("esx_ambulancejob") then
         TriggerEvent("esx_ambulancejob:revive")
         TriggerServerEvent("esx_ambulancejob:setDeathStatus", false)
         return true
@@ -64,7 +64,7 @@ function provider:revive()
 end
 
 function provider:clearDeathStatus()
-    if bridge.core:isStarted("esx_ambulancejob") then
+    if bridge.core.isStarted("esx_ambulancejob") then
         TriggerServerEvent("esx_ambulancejob:setDeathStatus", false)
     end
 end

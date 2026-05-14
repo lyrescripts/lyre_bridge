@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "notifications", "esx", 50)
 
 function provider:detect()
-    return bridge.core:isStarted("es_extended")
+    return bridge.core.isStarted("es_extended")
 end
 
 function provider:init()

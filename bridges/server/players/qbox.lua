@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("server", "players", "qbox", 5)
 
 function provider:detect()
-    return bridge.core:isStarted("qbx_core")
+    return bridge.core.isStarted("qbx_core")
 end
 
 function provider:init()
@@ -189,7 +189,7 @@ function provider:updateOfflinePlayerAccount(identifier, account, amount)
         return false
     end
 
-    local row = bridge.mysql:single("SELECT money FROM players WHERE citizenid = ?", { identifier })
+    local row = bridge.mysql.single("SELECT money FROM players WHERE citizenid = ?", { identifier })
     if not row then
         return false
     end
@@ -198,7 +198,7 @@ function provider:updateOfflinePlayerAccount(identifier, account, amount)
     local money = json.decode(row.money) or {}
     money[key] = (money[key] or 0) + amount
 
-    local affected = bridge.mysql:update(
+    local affected = bridge.mysql.update(
         "UPDATE players SET money = ? WHERE citizenid = ?",
         { json.encode(money), identifier }
     )

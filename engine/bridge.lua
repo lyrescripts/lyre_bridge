@@ -1,27 +1,41 @@
-function LyreBridge.buildBridge(side)
-    local custom = setmetatable({}, {
-        __index = function(_, fnName)
-            local resourceName = GetCurrentResourceName()
-            local fns = LyreBridge.customFunctions[resourceName]
-            local fn = fns and fns[fnName]
-            if fn then
-                return function(_, ...)
-                    return fn(...)
-                end
-            end
-            return function() end
-        end,
-    })
+local side = IsDuplicityVersion() and "server" or "client"
 
-    return setmetatable({ core = {}, custom = custom }, {
-        __index = function(self, moduleName)
+bridge = {
+    core = {},
+    custom = {},
+    config = {},
+}
+
+local function buildModuleTable(moduleName, methods)
+    local module = {}
+    for _, methodName in ipairs(methods) do
+        module[methodName] = function(...)
             local provider = LyreBridge.resolveProvider(side, moduleName)
-            if provider then
-                rawset(self, moduleName, provider)
+            if not provider then
+                return
             end
-            return provider
-        end,
-    })
+            local fn = provider[methodName]
+            if type(fn) ~= "function" then
+                return
+            end
+            return fn(provider, ...)
+        end
+    end
+    return module
 end
 
-bridge = LyreBridge.buildBridge(IsDuplicityVersion() and "server" or "client")
+local sideSpec = LyreBridge.modules[side] or {}
+for moduleName, methods in pairs(sideSpec) do
+    bridge[moduleName] = buildModuleTable(moduleName, methods)
+end
+
+local sharedSpec = LyreBridge.modules.shared or {}
+for moduleName, methods in pairs(sharedSpec) do
+    if not bridge[moduleName] then
+        bridge[moduleName] = buildModuleTable(moduleName, methods)
+    end
+end
+
+exports("getBridge", function()
+    return bridge
+end)

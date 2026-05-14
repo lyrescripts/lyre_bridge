@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("server", "dispatch", "zero_r_dispatch", 10)
 
 function provider:detect()
-    return bridge.core:isStarted("0r_dispatch")
+    return bridge.core.isStarted("0r_dispatch")
 end
 
 function provider:send(payload)

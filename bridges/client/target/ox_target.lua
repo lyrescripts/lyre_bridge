@@ -1,7 +1,7 @@
 local provider = LyreBridge.registerProvider("client", "target", "ox_target", 10)
 
 function provider:detect()
-    return bridge.core:isStarted("ox_target")
+    return bridge.core.isStarted("ox_target")
 end
 
 function provider:addLocalEntity(entity, options)
