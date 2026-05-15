@@ -1,9 +1,13 @@
 local provider = LyreBridge.registerProvider("client", "dispatch", "codem_dispatch", 70)
 
+---Active when the `codem-dispatch` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("codem-dispatch")
 end
 
+---Forward a dispatch alert to codem-dispatch.
+---@param payload BridgeDispatchPayload
 function provider:send(payload)
     exports["codem-dispatch"]:CustomDispatch({
         coords = payload.coords or GetEntityCoords(PlayerPedId()),

@@ -1,5 +1,7 @@
 local provider = LyreBridge.registerProvider("server", "vehicles", "default", 100)
 
+---Always active; the default server-side vehicle helpers are the universal fallback.
+---@return boolean
 function provider:detect()
     return true
 end
@@ -11,6 +13,8 @@ end
 ---   * any other character is kept as-is
 --- Length is capped to 8 characters. When `format` is nil or empty, a random
 --- 8-character alphanumeric plate is returned.
+---@param format? string
+---@return string
 function provider:generateRandomPlate(format)
     if type(format) == "string" and format ~= "" then
         local plate = ""

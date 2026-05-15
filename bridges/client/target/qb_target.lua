@@ -1,9 +1,14 @@
 local provider = LyreBridge.registerProvider("client", "target", "qb_target", 50)
 
+---Active when the `qb-target` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("qb-target")
 end
 
+---Attach target options to a local entity.
+---@param entity integer
+---@param options BridgeTargetOption[]
 function provider:addLocalEntity(entity, options)
     local converted = {}
     for index, option in ipairs(options) do
@@ -33,10 +38,16 @@ function provider:addLocalEntity(entity, options)
     exports["qb-target"]:AddTargetEntity(entity, { options = converted, distance = distance })
 end
 
+---Detach target options from `entity`.
+---@param entity integer
+---@param optionNames? string[] When provided, only these options are removed.
 function provider:removeLocalEntity(entity, optionNames)
     exports["qb-target"]:RemoveTargetEntity(entity, optionNames)
 end
 
+---Register a spherical interaction zone.
+---@param zone { id: string, coords: vector3, radius: number, options: BridgeTargetOption[] }
+---@return string? id
 function provider:addSphereZone(zone)
     local converted = {}
     for index, option in ipairs(zone.options) do
@@ -72,6 +83,8 @@ function provider:addSphereZone(zone)
     return zone.name
 end
 
+---Remove a previously-registered zone.
+---@param id string
 function provider:removeZone(id)
     exports["qb-target"]:RemoveZone(id)
 end

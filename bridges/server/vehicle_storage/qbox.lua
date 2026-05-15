@@ -1,29 +1,47 @@
 local provider = LyreBridge.registerProvider("server", "vehicle_storage", "qbox", 5)
 
+---Active when the `qbx_core` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("qbx_core")
 end
 
+---Underlying SQL table holding owned vehicles.
+---@return string
 function provider:getTableName()
     return "player_vehicles"
 end
 
+---Whether a record exists for the given plate.
+---@param plate string
+---@return boolean
 function provider:exists(plate)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     if not plate or plate == "" then return false end
     return bridge.mysql.scalar("SELECT 1 FROM `player_vehicles` WHERE plate = ? LIMIT 1", { plate }) ~= nil
 end
 
+---Identifier of the plate's owner.
+---@param plate string
+---@return string?
 function provider:getOwner(plate)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     return bridge.mysql.scalar("SELECT citizenid FROM `player_vehicles` WHERE plate = ?", { plate })
 end
 
+---Whether `plate` is currently owned by `owner`.
+---@param plate string
+---@param owner string
+---@return boolean
 function provider:isOwnedBy(plate, owner)
     if not owner then return false end
     return self:getOwner(plate) == owner
 end
 
+---Transfer ownership of `plate` to `newOwner`.
+---@param plate string
+---@param newOwner string
+---@return boolean
 function provider:setOwner(plate, newOwner)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     if not plate or plate == "" or not newOwner then return false end
@@ -34,6 +52,9 @@ function provider:setOwner(plate, newOwner)
     return (affected or 0) > 0
 end
 
+---Decoded vehicle properties stored for `plate`.
+---@param plate string
+---@return table?
 function provider:getProperties(plate)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     local raw = bridge.mysql.scalar("SELECT mods FROM `player_vehicles` WHERE plate = ?", { plate })
@@ -42,6 +63,10 @@ function provider:getProperties(plate)
     return ok and decoded or nil
 end
 
+---Persist new vehicle properties for `plate`.
+---@param plate string
+---@param properties table
+---@return boolean
 function provider:setProperties(plate, properties)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     if not plate or plate == "" or type(properties) ~= "table" then return false end
@@ -52,6 +77,9 @@ function provider:setProperties(plate, properties)
     return (affected or 0) > 0
 end
 
+---Combined owner + properties payload.
+---@param plate string
+---@return table?
 function provider:getInfo(plate)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     local row = bridge.mysql.single("SELECT plate, citizenid, mods FROM `player_vehicles` WHERE plate = ?", { plate })
@@ -68,6 +96,9 @@ function provider:getInfo(plate)
     }
 end
 
+---Every vehicle row owned by `owner`.
+---@param owner string
+---@return table[]
 function provider:getByOwner(owner)
     if not owner then return {} end
     local rows = bridge.mysql.query(
@@ -91,6 +122,12 @@ function provider:getByOwner(owner)
     return vehicles
 end
 
+---Insert a new owned vehicle.
+---@param owner string
+---@param model string
+---@param plate string
+---@param properties? table Defaults to a brand-new vehicle profile.
+---@return boolean
 function provider:create(owner, model, plate, properties)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     if not plate or plate == "" or not owner or not model then return false end
@@ -121,6 +158,9 @@ function provider:create(owner, model, plate, properties)
     return (affected or 0) > 0
 end
 
+---Drop the owned-vehicle row for `plate`.
+---@param plate string
+---@return boolean
 function provider:delete(plate)
     plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
     if not plate or plate == "" then return false end
@@ -128,6 +168,10 @@ function provider:delete(plate)
     return (affected or 0) > 0
 end
 
+---Rewrite the plate for an existing record.
+---@param oldPlate string
+---@param newPlate string
+---@return boolean
 function provider:renamePlate(oldPlate, newPlate)
     oldPlate = oldPlate and oldPlate:gsub("^%s*(.-)%s*$", "%1")
     newPlate = newPlate and newPlate:gsub("^%s*(.-)%s*$", "%1")

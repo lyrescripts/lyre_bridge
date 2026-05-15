@@ -1,9 +1,13 @@
 local provider = LyreBridge.registerProvider("client", "dispatch", "cd_dispatch", 10)
 
+---Active when the `cd_dispatch` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("cd_dispatch")
 end
 
+---Forward a dispatch alert to cd_dispatch.
+---@param payload BridgeDispatchPayload
 function provider:send(payload)
     local data = exports["cd_dispatch"]:GetPlayerInfo()
     TriggerServerEvent("cd_dispatch:AddNotification", {

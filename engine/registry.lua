@@ -2,6 +2,13 @@ LyreBridge = LyreBridge or {}
 
 LyreBridge.providers = { client = {}, server = {}, shared = {} }
 
+---Register a provider for a given side and module. Providers are sorted by
+---ascending priority — the lowest number wins at resolution time.
+---@param side BridgeSide
+---@param moduleName string
+---@param name string
+---@param priority? integer Defaults to 100.
+---@return Provider
 function LyreBridge.registerProvider(side, moduleName, name, priority)
     assert(side == "client" or side == "server" or side == "shared",
         "registerProvider: side must be client, server or shared")

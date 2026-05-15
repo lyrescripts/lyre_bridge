@@ -1,3 +1,7 @@
+---Fetch the latest published version for `resourceName` and emit a warning
+---log with the changelog when the running version is behind. Defaults to the
+---invoking resource. Server-only.
+---@param resourceName? string
 function bridge.core.checkVersion(resourceName)
     resourceName = resourceName or GetInvokingResource() or GetCurrentResourceName()
 

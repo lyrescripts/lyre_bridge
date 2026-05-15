@@ -1,5 +1,9 @@
 local cache = {}
 
+---Check whether a resource is currently started. Results are cached for up to
+---2.5s and invalidated by resource start/stop events.
+---@param resourceName string
+---@return boolean
 function bridge.core.isStarted(resourceName)
     if type(resourceName) ~= "string" or resourceName == "" then
         return false

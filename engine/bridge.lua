@@ -1,6 +1,7 @@
 local CURRENT_SIDE = IsDuplicityVersion() and "server" or "client"
 local LIFECYCLE = { detect = true, init = true }
 
+---@type Bridge
 bridge = {
     core = {},
     custom = {},
@@ -9,6 +10,12 @@ bridge = {
 
 local built = false
 
+---Build a thin dispatcher that lazily resolves the active provider for the
+---given module and forwards the call to its same-named method.
+---@param side BridgeSide
+---@param moduleName string
+---@param methodName string
+---@return fun(...): any
 local function makeWrapper(side, moduleName, methodName)
     return function(...)
         local provider = LyreBridge.resolveProvider(side, moduleName)
@@ -23,6 +30,9 @@ local function makeWrapper(side, moduleName, methodName)
     end
 end
 
+---Populate `bridge[moduleName]` for every module registered on `side` by
+---taking the union of the public method names across every provider.
+---@param side BridgeSide
 local function discoverSide(side)
     local buckets = LyreBridge.providers[side]
     if not buckets then
@@ -46,6 +56,10 @@ local function discoverSide(side)
     end
 end
 
+---Walk every registered provider on the current side (plus the shared bucket)
+---and generate a flat wrapper for each public method. Idempotent — repeat
+---calls are a no-op.
+---@return Bridge
 function LyreBridge.buildBridge()
     if built then
         return bridge
@@ -56,6 +70,7 @@ function LyreBridge.buildBridge()
     return bridge
 end
 
+---Export consumed by `@lyre_bridge/imports.lua` from external resources.
 exports("getBridge", function()
     return LyreBridge.buildBridge()
 end)

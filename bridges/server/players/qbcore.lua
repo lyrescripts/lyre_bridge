@@ -1,13 +1,19 @@
 local provider = LyreBridge.registerProvider("server", "players", "qbcore", 20)
 
+---Active when the `qb-core` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("qb-core")
 end
 
+---Cache the QBCore core object for later calls.
 function provider:init()
     self.object = exports["qb-core"]:GetCoreObject()
 end
 
+---Resolve a player wrapper from their server id.
+---@param playerId integer
+---@return BridgePlayer | false player
 function provider:getPlayerFromId(playerId)
     local qbPlayer = self.object.Functions.GetPlayer(playerId)
     if not qbPlayer then
@@ -94,6 +100,9 @@ function provider:getPlayerFromId(playerId)
     return player
 end
 
+---Resolve a player wrapper from their persistent citizen id.
+---@param identifier string
+---@return BridgePlayer | false
 function provider:getPlayerFromIdentifier(identifier)
     local qbPlayer = self.object.Functions.GetPlayerByCitizenId(identifier)
     if not qbPlayer then
@@ -102,6 +111,9 @@ function provider:getPlayerFromIdentifier(identifier)
     return self:getPlayerFromId(qbPlayer.PlayerData.source)
 end
 
+---Look up the server id currently bound to a citizen id.
+---@param identifier string
+---@return integer | false
 function provider:getIdFromIdentifier(identifier)
     if not identifier then
         return false
@@ -115,6 +127,8 @@ function provider:getIdFromIdentifier(identifier)
     return qbPlayer.PlayerData.source
 end
 
+---List every player currently connected.
+---@return BridgePlayer[]
 function provider:getOnlinePlayers()
     local players = {}
     for _, source in ipairs(self.object.Functions.GetPlayers()) do
@@ -123,6 +137,10 @@ function provider:getOnlinePlayers()
     return players
 end
 
+---List online players whose job matches the requested name(s).
+---@param jobs string | string[] Single job name or an array of job names.
+---@param onDutyOnly? boolean When true, skip players currently off-duty.
+---@return BridgePlayer[]
 function provider:getOnlinePlayersByJob(jobs, onDutyOnly)
     local jobMap = {}
     if type(jobs) == "string" then
@@ -146,6 +164,11 @@ function provider:getOnlinePlayersByJob(jobs, onDutyOnly)
     return players
 end
 
+---List players within `radius` of `coords`.
+---@param coords vector3
+---@param radius number
+---@param options? { exceptions?: table<integer, boolean>, includeDead?: boolean } `exceptions` excludes sources; `includeDead` keeps players with 0 HP.
+---@return BridgePlayer[]
 function provider:getPlayersInZone(coords, radius, options)
     options = options or {}
     local players = {}
@@ -165,12 +188,18 @@ function provider:getPlayersInZone(coords, radius, options)
     return players
 end
 
+---Revive a downed player via the QB hospital script.
+---@param source integer
+---@return boolean
 function provider:revive(source)
     if not source then return false end
     TriggerClientEvent("hospital:client:Revive", source)
     return true
 end
 
+---Clear the QB-tracked death and last-stand metadata.
+---@param source integer
+---@return boolean
 function provider:clearDeathStatus(source)
     local qbPlayer = self.object.Functions.GetPlayer(source)
     if not qbPlayer then return false end
@@ -179,6 +208,11 @@ function provider:clearDeathStatus(source)
     return true
 end
 
+---Add `amount` to an offline player's account balance and persist it.
+---@param identifier string
+---@param account BridgeAccount
+---@param amount integer Signed; pass a negative number to deduct.
+---@return boolean
 function provider:updateOfflinePlayerAccount(identifier, account, amount)
     if not identifier or not account or not amount then
         return false

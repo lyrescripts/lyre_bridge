@@ -1,3 +1,11 @@
+---Resolve the active provider for a module on a given side. Honors the
+---`lyre_bridge:provider:<side>:<module>:force` and
+---`lyre_bridge:provider:<side>:<module>:disabled` convars before falling back
+---to each provider's `detect()` callback. The selected provider's `init()` is
+---invoked exactly once.
+---@param side BridgeSide
+---@param moduleName string
+---@return Provider?
 function LyreBridge.resolveProvider(side, moduleName)
     for _, sideToCheck in ipairs({ side, "shared" }) do
         local bucket = LyreBridge.providers[sideToCheck] and LyreBridge.providers[sideToCheck][moduleName]

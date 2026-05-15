@@ -1,9 +1,13 @@
 local provider = LyreBridge.registerProvider("client", "dispatch", "core_dispatch", 50)
 
+---Active when the `core_dispatch` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("core_dispatch")
 end
 
+---Forward a dispatch alert to core_dispatch.
+---@param payload BridgeDispatchPayload
 function provider:send(payload)
     local coords = payload.coords or GetEntityCoords(PlayerPedId())
     TriggerServerEvent("core_dispatch:addCall",

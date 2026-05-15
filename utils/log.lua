@@ -1,3 +1,8 @@
+---Emit a colored log line through the FiveM console. `debug` lines are only
+---printed when `LyreBridge.debug` is enabled.
+---@param logType BridgeLogType
+---@param msg string
+---@param invoker? string Defaults to the invoking resource.
 function bridge.core.log(logType, msg, invoker)
     logType = logType and string.lower(logType) or "info"
 

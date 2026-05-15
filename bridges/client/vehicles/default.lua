@@ -1,9 +1,14 @@
 local provider = LyreBridge.registerProvider("client", "vehicles", "default", 100)
 
+---Always active; the default client-side vehicle helpers are the universal fallback.
+---@return boolean
 function provider:detect()
     return true
 end
 
+---Serialize the visual properties of `vehicle`.
+---@param vehicle integer
+---@return table? properties `nil` when no supported framework was available.
 function provider:getProperties(vehicle)
     if bridge.core.isStarted("ox_lib") and lib and type(lib.getVehicleProperties) == "function" then
         return lib.getVehicleProperties(vehicle)
@@ -19,6 +24,10 @@ function provider:getProperties(vehicle)
     return nil
 end
 
+---Apply previously-serialized properties to `vehicle`.
+---@param vehicle integer
+---@param properties table
+---@return boolean applied false when no supported framework was available.
 function provider:applyProperties(vehicle, properties)
     if not properties then return false end
 

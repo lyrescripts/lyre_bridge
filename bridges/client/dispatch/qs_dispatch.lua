@@ -1,9 +1,13 @@
 local provider = LyreBridge.registerProvider("client", "dispatch", "qs_dispatch", 20)
 
+---Active when the `qs-dispatch` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("qs-dispatch")
 end
 
+---Forward a dispatch alert to qs-dispatch.
+---@param payload BridgeDispatchPayload
 function provider:send(payload)
     exports["qs-dispatch"]:getDispatchAlert({
         job = payload.jobs or { "police" },

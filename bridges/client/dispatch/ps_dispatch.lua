@@ -1,9 +1,13 @@
 local provider = LyreBridge.registerProvider("client", "dispatch", "ps_dispatch", 30)
 
+---Active when the `ps-dispatch` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("ps-dispatch")
 end
 
+---Forward a dispatch alert to ps-dispatch.
+---@param payload BridgeDispatchPayload
 function provider:send(payload)
     exports["ps-dispatch"]:CustomAlert({
         coords = payload.coords or GetEntityCoords(PlayerPedId()),

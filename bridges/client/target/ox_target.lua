@@ -1,21 +1,34 @@
 local provider = LyreBridge.registerProvider("client", "target", "ox_target", 10)
 
+---Active when the `ox_target` resource is started.
+---@return boolean
 function provider:detect()
     return bridge.core.isStarted("ox_target")
 end
 
+---Attach target options to a local entity.
+---@param entity integer
+---@param options BridgeTargetOption[]
 function provider:addLocalEntity(entity, options)
     exports.ox_target:addLocalEntity(entity, options)
 end
 
+---Detach target options from `entity`.
+---@param entity integer
+---@param optionNames? string[] When provided, only these options are removed.
 function provider:removeLocalEntity(entity, optionNames)
     exports.ox_target:removeLocalEntity(entity, optionNames)
 end
 
+---Register a spherical interaction zone.
+---@param zone { id: string, coords: vector3, radius: number, options: BridgeTargetOption[] }
+---@return string? id
 function provider:addSphereZone(zone)
     return exports.ox_target:addSphereZone(zone)
 end
 
+---Remove a previously-registered zone.
+---@param id string
 function provider:removeZone(id)
     exports.ox_target:removeZone(id)
 end
