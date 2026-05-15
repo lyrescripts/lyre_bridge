@@ -1,9 +1,9 @@
 local provider = LyreBridge.registerProvider("client", "notifications", "qbox", 40)
 
----Active when both `qbx_core` and `ox_lib` are started and `lib.notify` is available.
+---Active when both `qbx_core` and `ox_lib` are started.
 ---@return boolean
 function provider:detect()
-    return bridge.core.isStarted("qbx_core") and bridge.core.isStarted("ox_lib") and lib and type(lib.notify) == "function"
+    return bridge.core.isStarted("qbx_core") and bridge.core.isStarted("ox_lib")
 end
 
 ---Display a standard ox_lib notification.
@@ -11,7 +11,7 @@ end
 ---@param notificationType? BridgeNotificationType ox_lib variant (`inform`, `success`, ...).
 ---@param duration? integer Milliseconds to keep the notification visible.
 function provider:show(message, notificationType, duration)
-    lib.notify({
+    exports.ox_lib:notify({
         description = message,
         type = notificationType or "inform",
         duration = duration or 5000,

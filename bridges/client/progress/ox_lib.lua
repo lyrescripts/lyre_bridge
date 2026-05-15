@@ -1,9 +1,9 @@
 local provider = LyreBridge.registerProvider("client", "progress", "ox_lib", 10)
 
----Active when `ox_lib` is started and exposes `lib.progressCircle`.
+---Active when the `ox_lib` resource is started.
 ---@return boolean
 function provider:detect()
-    return bridge.core.isStarted("ox_lib") and lib and type(lib.progressCircle) == "function"
+    return bridge.core.isStarted("ox_lib")
 end
 
 ---Run a progress bar and resolve once it ends.
@@ -11,7 +11,7 @@ end
 ---@return boolean completed false when the player cancelled.
 function provider:run(options)
     if options.circle then
-        return lib.progressCircle(options)
+        return exports.ox_lib:progressCircle(options)
     end
-    return lib.progressBar(options)
+    return exports.ox_lib:progressBar(options)
 end
