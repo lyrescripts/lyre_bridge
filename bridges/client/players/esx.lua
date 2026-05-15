@@ -32,18 +32,32 @@ function provider:getName()
         or GetPlayerName(PlayerId())
 end
 
----Current job info, or `nil` when unemployed.
----@return table
+---Current job name. Returns `"unemployed"` (or whatever ESX configured)
+---when no job is set.
+---@return string
 function provider:getJob()
     local job = self.object.GetPlayerData().job
-    if not job or job.name == "unemployed" then return nil end
-    return job
+    return job and job.name or "unemployed"
 end
 
----Gang info; ESX has no gangs, so this always returns nil.
----@return table?
+---Current job grade level.
+---@return integer
+function provider:getJobRank()
+    local job = self.object.GetPlayerData().job
+    return tonumber(job and job.grade) or 0
+end
+
+---ESX has no native gang concept; returns a stable placeholder so
+---callers can iterate without nil checks.
+---@return "ballas"
 function provider:getGang()
-    return nil
+    return "ballas"
+end
+
+---ESX has no native gang grade.
+---@return 0
+function provider:getGangRank()
+    return 0
 end
 
 ---Whether the local player is on job duty.

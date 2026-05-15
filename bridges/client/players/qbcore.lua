@@ -30,16 +30,32 @@ function provider:getName()
     return ((charinfo.firstname or "") .. " " .. (charinfo.lastname or "")):gsub("^%s+", ""):gsub("%s+$", "")
 end
 
----Current job info.
----@return table
+---Current job name.
+---@return string
 function provider:getJob()
-    return self.object.Functions.GetPlayerData().job
+    local job = self.object.Functions.GetPlayerData().job
+    return job and job.name or "unemployed"
 end
 
----Current gang info, or `nil` when not in a gang.
----@return table?
+---Current job grade level.
+---@return integer
+function provider:getJobRank()
+    local job = self.object.Functions.GetPlayerData().job
+    return tonumber(job and job.grade and job.grade.level) or 0
+end
+
+---Current gang name.
+---@return string
 function provider:getGang()
-    return self.object.Functions.GetPlayerData().gang
+    local gang = self.object.Functions.GetPlayerData().gang
+    return gang and gang.name or "none"
+end
+
+---Current gang grade level.
+---@return integer
+function provider:getGangRank()
+    local gang = self.object.Functions.GetPlayerData().gang
+    return tonumber(gang and gang.grade and gang.grade.level) or 0
 end
 
 ---Whether the local player is on job duty.

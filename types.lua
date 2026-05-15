@@ -58,8 +58,10 @@
 ---@field getData fun(): table Raw framework player data table.
 ---@field getIdentifier fun(): string
 ---@field getName fun(): string
----@field getJob fun(): { name: string, label?: string, grade?: integer, grade_label?: string }
----@field getGang fun(): { name: string, label?: string, grade?: integer }?
+---@field getJob fun(): string Current job name.
+---@field getJobRank fun(): integer Current job grade level.
+---@field getGang fun(): string Current gang name. ESX has no native gang so a placeholder is returned.
+---@field getGangRank fun(): integer Current gang grade level. Always `0` on ESX.
 ---@field isOnJobDuty fun(): boolean
 ---@field isOnGangDuty fun(): boolean
 ---@field getAccount fun(accountName: BridgeAccount): integer
@@ -109,7 +111,8 @@
 ---@field clearDeathStatus fun(source: integer): boolean
 ---@field updateOfflinePlayerAccount fun(identifier: string, account: BridgeAccount, amount: integer): boolean Mutates the persisted account balance for offline players.
 
----Client-side wrapper around the local framework player.
+---Client-side wrapper around the local framework player. Mirrors
+---`BridgeClientPlayer`.
 ---@class BridgeClientPlayers : BridgeClientPlayer
 
 ---Notification surface. Backed by the active notifications provider (esx,
@@ -200,23 +203,6 @@
 ---@field give fun(vehicle: integer, plate: string) Grant key ownership for the given plate.
 ---@field remove fun(plate: string) Revoke key ownership.
 
----Required group form for `bridge.permissions.hasGroups`. A string matches
----a single group by name; an array matches any of the listed names; a
----dictionary maps `name -> minimum grade`.
----@alias BridgeGroups string | string[] | table<string, integer>
-
----Server-side permission / group checks. Player groups are gathered
----through the active permissions provider, the comparison logic is shared.
----@class BridgePermissions
----@field hasGroups fun(source: integer, groups: BridgeGroups): boolean
----@field hasAce fun(source: integer, ace: string): boolean Honors `group.<ace>` and `command.<ace>` variants.
----@field getPlayerGroups fun(source: integer): table<string, integer>
-
----Client-side permission / group checks for the local player.
----@class BridgeClientPermissions
----@field hasGroups fun(groups: BridgeGroups): boolean
----@field getPlayerGroups fun(): table<string, integer>
-
 ---Server-side player needs (hunger / thirst) bridged across frameworks.
 ---@class BridgeStatus
 ---@field feed fun(source: integer) Restore the player's hunger and thirst to full.
@@ -264,7 +250,6 @@
 ---@field config BridgeConfig
 ---@field mysql BridgeMysql
 ---@field players BridgePlayers | BridgeClientPlayers
----@field permissions BridgePermissions | BridgeClientPermissions
 ---@field status BridgeStatus
 ---@field notifications BridgeNotifications
 ---@field target BridgeTarget
