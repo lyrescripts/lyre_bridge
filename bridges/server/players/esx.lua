@@ -74,14 +74,26 @@ function provider:getPlayerFromId(playerId)
     end
 
     player.hasLicense = function(licenseType)
-        local result = false
-        TriggerEvent("esx_license:checkLicense", xPlayer.source, licenseType, function(has)
-            result = has == true
-        end)
-        return result
+        if licenseType == "car" then licenseType = "drive"
+        elseif licenseType == "motorcycle" then licenseType = "drive_bike"
+        elseif licenseType == "truck" then licenseType = "drive_truck"
+        elseif licenseType == "plane" then licenseType = "fly_plane"
+        elseif licenseType == "heli" then licenseType = "fly_heli"
+        end
+        local row = MySQL.scalar.await(
+            "SELECT 1 FROM `user_licenses` WHERE owner = ? AND type = ? LIMIT 1",
+            { xPlayer.identifier, licenseType }
+        )
+        return row ~= nil
     end
 
     player.grantLicense = function(licenseType)
+        if licenseType == "car" then licenseType = "drive"
+        elseif licenseType == "motorcycle" then licenseType = "drive_bike"
+        elseif licenseType == "truck" then licenseType = "drive_truck"
+        elseif licenseType == "plane" then licenseType = "fly_plane"
+        elseif licenseType == "heli" then licenseType = "fly_heli"
+        end
         TriggerEvent("esx_license:addLicense", xPlayer.source, licenseType)
         return true
     end

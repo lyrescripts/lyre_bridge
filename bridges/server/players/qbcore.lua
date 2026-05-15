@@ -78,11 +78,19 @@ function provider:getPlayerFromId(playerId)
     end
 
     player.hasLicense = function(licenseType)
+        if licenseType == "car" then licenseType = "driver"
+        elseif licenseType == "plane" then licenseType = "fly_plane"
+        elseif licenseType == "heli" then licenseType = "fly_heli"
+        end
         local licenses = data.metadata and data.metadata.licences or {}
         return licenses[licenseType] == true
     end
 
     player.grantLicense = function(licenseType)
+        if licenseType == "car" then licenseType = "driver"
+        elseif licenseType == "plane" then licenseType = "fly_plane"
+        elseif licenseType == "heli" then licenseType = "fly_heli"
+        end
         local licenses = data.metadata and data.metadata.licences or {}
         licenses[licenseType] = true
         qbPlayer.Functions.SetMetaData("licences", licenses)
