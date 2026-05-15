@@ -45,7 +45,6 @@
 ---@field getAccount fun(account: BridgeAccount): integer Current balance for the requested account.
 ---@field addAccountMoney fun(account: BridgeAccount, amount: integer): boolean Always returns true on success.
 ---@field removeAccountMoney fun(account: BridgeAccount, amount: integer): boolean Returns false when the account would go negative.
----@field showNotification fun(message: string)
 ---@field addItem fun(itemName: string, count: integer, metadata?: table)
 ---@field removeItem fun(itemName: string, count: integer)
 ---@field getItemCount fun(itemName: string): integer

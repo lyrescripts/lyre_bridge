@@ -66,14 +66,6 @@ function provider:getPlayerFromId(playerId)
         return qboxPlayer.Functions.RemoveMoney(key, amount, "") ~= false
     end
 
-    player.showNotification = function(message, notificationType, duration)
-        TriggerClientEvent("ox_lib:notify", data.source, {
-            description = message,
-            type = notificationType or "inform",
-            duration = duration or 5000,
-        })
-    end
-
     player.addItem = function(itemName, count, metadata)
         exports.ox_inventory:AddItem(data.source, itemName, count, metadata)
     end

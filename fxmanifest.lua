@@ -31,6 +31,7 @@ shared_scripts({
 })
 
 client_scripts({
+    "engine/client_relay.lua",
     "bridges/client/**/*.lua",
 })
 

@@ -64,10 +64,6 @@ function provider:getPlayerFromId(playerId)
         return qbPlayer.Functions.RemoveMoney(key, amount, "") ~= false
     end
 
-    player.showNotification = function(message, notificationType, duration)
-        TriggerClientEvent("QBCore:Notify", data.source, message, notificationType or "primary", duration or 5000)
-    end
-
     player.addItem = function(itemName, count, metadata)
         qbPlayer.Functions.AddItem(itemName, count, nil, metadata)
     end

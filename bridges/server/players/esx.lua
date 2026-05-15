@@ -60,10 +60,6 @@ function provider:getPlayerFromId(playerId)
         return true
     end
 
-    player.showNotification = function(message)
-        xPlayer.showNotification(message)
-    end
-
     player.addItem = function(itemName, count, metadata)
         xPlayer.addInventoryItem(itemName, count, metadata)
     end
