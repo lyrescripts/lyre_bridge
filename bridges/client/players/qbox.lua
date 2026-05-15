@@ -86,12 +86,34 @@ function provider:getAccount(accountName)
     return money[key] or 0
 end
 
----Revive the local player via the hospital script.
+---Revive the local player. Fades the screen out for the transition,
+---performs the native revive (`NetworkResurrectLocalPlayer` + full HP +
+---blood cleanup), clears post-death timecycle / motion-blur effects,
+---then fades back in. Also clears the qbx hospital death/laststand
+---metadata so the framework UI stays in sync.
 ---@return boolean
 function provider:revive()
+    DoScreenFadeOut(800)
+    while not IsScreenFadedOut() do Wait(50) end
+
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    local x = math.floor(coords.x * 10 + 0.5) / 10
+    local y = math.floor(coords.y * 10 + 0.5) / 10
+    local z = math.floor(coords.z * 10 + 0.5) / 10
+    NetworkResurrectLocalPlayer(x, y, z, GetEntityHeading(ped), true, false)
+    ClearPedTasksImmediately(ped)
+    SetEntityHealth(ped, GetEntityMaxHealth(ped))
+    ClearPedBloodDamage(ped)
+    ClearTimecycleModifier()
+    ClearExtraTimecycleModifier()
+    SetPedMotionBlur(ped, false)
+
     TriggerEvent("hospital:client:Revive")
     TriggerServerEvent("hospital:server:SetDeathStatus", false)
     TriggerServerEvent("hospital:server:SetLaststandStatus", false)
+
+    DoScreenFadeIn(800)
     return true
 end
 

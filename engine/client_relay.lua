@@ -11,3 +11,9 @@
 RegisterNetEvent("lyre_bridge:notifications:show", function(message, notificationType, duration)
     bridge.notifications.show(message, notificationType, duration)
 end)
+
+---Revive the local player through the active client-side players provider.
+---Fired from the server with `TriggerClientEvent("lyre_bridge:players:revive", source)`.
+RegisterNetEvent("lyre_bridge:players:revive", function()
+    bridge.players.revive()
+end)

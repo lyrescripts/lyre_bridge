@@ -88,15 +88,36 @@ function provider:getAccount(accountName)
     return 0
 end
 
----Revive the local player via the ESX ambulance script.
+---Revive the local player. Fades the screen out for the transition,
+---performs the native revive (`NetworkResurrectLocalPlayer` + full HP +
+---blood cleanup), clears post-death timecycle / motion-blur effects,
+---then fades back in. When `esx_ambulancejob` is present, also clears
+---its tracked death status so the framework UI stays in sync.
 ---@return boolean
 function provider:revive()
+    DoScreenFadeOut(800)
+    while not IsScreenFadedOut() do Wait(50) end
+
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    local x = math.floor(coords.x * 10 + 0.5) / 10
+    local y = math.floor(coords.y * 10 + 0.5) / 10
+    local z = math.floor(coords.z * 10 + 0.5) / 10
+    NetworkResurrectLocalPlayer(x, y, z, GetEntityHeading(ped), true, false)
+    ClearPedTasksImmediately(ped)
+    SetEntityHealth(ped, GetEntityMaxHealth(ped))
+    ClearPedBloodDamage(ped)
+    ClearTimecycleModifier()
+    ClearExtraTimecycleModifier()
+    SetPedMotionBlur(ped, false)
+
     if bridge.core.isStarted("esx_ambulancejob") then
         TriggerEvent("esx_ambulancejob:revive")
         TriggerServerEvent("esx_ambulancejob:setDeathStatus", false)
-        return true
     end
-    return false
+
+    DoScreenFadeIn(800)
+    return true
 end
 
 ---Clear the framework-tracked death flag.

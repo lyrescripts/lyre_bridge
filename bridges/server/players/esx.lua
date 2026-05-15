@@ -180,12 +180,14 @@ function provider:getPlayersInZone(coords, radius, options)
     return players
 end
 
----Revive a downed player via the ESX ambulance script.
+---Revive a downed player. Dispatches the `lyre_bridge:players:revive`
+---relay to the target so the client-side revive (native resurrect +
+---framework-specific death-status cleanup) runs in one call.
 ---@param source integer
 ---@return boolean
 function provider:revive(source)
     if not source then return false end
-    TriggerClientEvent("esx_ambulancejob:revive", source)
+    TriggerClientEvent("lyre_bridge:players:revive", source)
     return true
 end
 

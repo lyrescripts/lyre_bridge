@@ -185,12 +185,14 @@ function provider:getPlayersInZone(coords, radius, options)
     return players
 end
 
----Revive a downed player via the hospital script.
+---Revive a downed player. Dispatches the `lyre_bridge:players:revive`
+---relay to the target so the client-side revive (native resurrect +
+---hospital metadata cleanup) runs in one call.
 ---@param source integer
 ---@return boolean
 function provider:revive(source)
     if not source then return false end
-    TriggerClientEvent("hospital:client:Revive", source)
+    TriggerClientEvent("lyre_bridge:players:revive", source)
     return true
 end
 
