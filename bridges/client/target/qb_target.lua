@@ -1,9 +1,9 @@
 local provider = LyreBridge.registerProvider("client", "target", "qb_target", 50)
 
----Active when the `qb-target` resource is started.
+---Active when `qb-target` is started or provided by another resource.
 ---@return boolean
 function provider:detect()
-    return bridge.core.isStarted("qb-target")
+    return bridge.core.isAvailable("qb-target")
 end
 
 ---Attach target options to a local entity.

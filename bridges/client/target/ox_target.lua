@@ -1,9 +1,10 @@
 local provider = LyreBridge.registerProvider("client", "target", "ox_target", 10)
 
----Active when the `ox_target` resource is started.
+---Active when `ox_target` is started or provided by another resource
+---(e.g. `lyre_context` declares `provide "ox_target"`).
 ---@return boolean
 function provider:detect()
-    return bridge.core.isStarted("ox_target")
+    return bridge.core.isAvailable("ox_target")
 end
 
 ---Attach target options to a local entity.

@@ -69,6 +69,7 @@
 ---Utility namespace for cross-cutting helpers that are not provider-backed.
 ---@class BridgeCore
 ---@field isStarted fun(resourceName: string): boolean Cached `GetResourceState` check.
+---@field isAvailable fun(resourceName: string): boolean True when the resource is started OR any started resource declares `provide "<name>"` in its manifest.
 ---@field log fun(logType: BridgeLogType, msg: string, invoker?: string) Pretty-print to the FiveM console.
 ---@field setDebug fun(enabled: boolean) Toggle the `debug` log channel.
 ---@field checkVersion fun(resourceName?: string) Compare local resource version against the published manifest.
@@ -199,6 +200,29 @@
 ---@field give fun(vehicle: integer, plate: string) Grant key ownership for the given plate.
 ---@field remove fun(plate: string) Revoke key ownership.
 
+---Required group form for `bridge.permissions.hasGroups`. A string matches
+---a single group by name; an array matches any of the listed names; a
+---dictionary maps `name -> minimum grade`.
+---@alias BridgeGroups string | string[] | table<string, integer>
+
+---Server-side permission / group checks. Player groups are gathered
+---through the active permissions provider, the comparison logic is shared.
+---@class BridgePermissions
+---@field hasGroups fun(source: integer, groups: BridgeGroups): boolean
+---@field hasAce fun(source: integer, ace: string): boolean Honors `group.<ace>` and `command.<ace>` variants.
+---@field getPlayerGroups fun(source: integer): table<string, integer>
+
+---Client-side permission / group checks for the local player.
+---@class BridgeClientPermissions
+---@field hasGroups fun(groups: BridgeGroups): boolean
+---@field getPlayerGroups fun(): table<string, integer>
+
+---Server-side player needs (hunger / thirst) bridged across frameworks.
+---@class BridgeStatus
+---@field feed fun(source: integer) Restore the player's hunger and thirst to full.
+---@field setHunger fun(source: integer, value: number) `value` is the framework's native range (0-100 or 0-1000000 for ESX).
+---@field setThirst fun(source: integer, value: number)
+
 ---Vehicle fuel level (0 - 100) through the active fuel provider.
 ---@class BridgeFuel
 ---@field get fun(vehicle: integer): number
@@ -240,6 +264,8 @@
 ---@field config BridgeConfig
 ---@field mysql BridgeMysql
 ---@field players BridgePlayers | BridgeClientPlayers
+---@field permissions BridgePermissions | BridgeClientPermissions
+---@field status BridgeStatus
 ---@field notifications BridgeNotifications
 ---@field target BridgeTarget
 ---@field inventory BridgeInventory | BridgeClientInventory
