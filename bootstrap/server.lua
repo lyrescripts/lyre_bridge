@@ -45,3 +45,5 @@ loadFile("bridges/server/dispatch/rcore_dispatch.lua")
 loadFile("bridges/server/dispatch/ps_dispatch.lua")
 loadFile("bridges/server/dispatch/cd_dispatch.lua")
 loadFile("bridges/server/dispatch/lb_tablet.lua")
+
+LyreBridge.buildBridge()

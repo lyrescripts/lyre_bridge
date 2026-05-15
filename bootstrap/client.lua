@@ -73,3 +73,5 @@ loadFile("bridges/client/dispatch/codem_dispatch.lua")
 
 loadFile("bridges/client/progress/ox_lib.lua")
 loadFile("bridges/client/progress/native.lua")
+
+LyreBridge.buildBridge()

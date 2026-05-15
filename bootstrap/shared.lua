@@ -14,7 +14,6 @@ end
 loadFile("config.lua")
 loadFile("engine/registry.lua")
 loadFile("engine/resolver.lua")
-loadFile("engine/spec.lua")
 loadFile("engine/bridge.lua")
 
 loadFile("engine/configuration.lua")
