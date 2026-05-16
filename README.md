@@ -33,12 +33,13 @@ types.lua               LuaLS annotations describing the public surface
 
 ## Configuration
 
-Set in `server.cfg`. All knobs are convars.
+Set in `server.cfg`. All knobs are convars. The values below match the
+defaults; only override what you actually want to change.
 
 ```cfg
 # global defaults applied to every consumer
-setr lyre_bridge:locale fr
-setr lyre_bridge:interact target
+setr lyre_bridge:locale en
+setr lyre_bridge:interact marker
 
 # per-resource override (wins over the global default)
 setr lyre_bridge:lyre_carwash:interact marker
@@ -51,8 +52,8 @@ setr lyre_bridge:provider:server:dispatch:force ps_dispatch
 # blacklist a provider so detection skips it
 setr lyre_bridge:provider:client:notifications:disabled qbcore,esx
 
-# disable the bridge's startup version check pipeline
-setr lyre_bridge:checkForUpdates false
+# bridge's startup version check pipeline (keep this on to get update warnings)
+setr lyre_bridge:checkForUpdates true
 ```
 
 ## Adding a consumer
