@@ -98,7 +98,14 @@ function provider:getPlayerFromId(playerId)
     end
 
     player.getAdminRank = function()
-        return self.object.Functions.GetPermission and self.object.Functions.GetPermission(data.source) or "user"
+        local perms = self.object.Functions.GetPermission and self.object.Functions.GetPermission(data.source)
+        if type(perms) == "table" then
+            return perms
+        end
+        if type(perms) == "string" and perms ~= "" then
+            return { [perms] = true }
+        end
+        return { user = true }
     end
 
     return player

@@ -99,7 +99,9 @@ function provider:getPlayerFromId(playerId)
     end
 
     player.getAdminRank = function()
-        return xPlayer.getGroup and xPlayer.getGroup() or "user"
+        local group = xPlayer.getGroup and xPlayer.getGroup() or "user"
+        if type(group) ~= "string" or group == "" then group = "user" end
+        return { [group] = true }
     end
 
     return player

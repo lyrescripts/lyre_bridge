@@ -50,7 +50,7 @@
 ---@field getItemCount fun(itemName: string): integer
 ---@field hasLicense fun(licenseType: string): boolean
 ---@field grantLicense fun(licenseType: string): boolean
----@field getAdminRank fun(): string Returns the framework permission group (`"user"` by default).
+---@field getAdminRank fun(): table<string, boolean> Returns the framework permission groups as a set keyed by rank name (e.g. `{ admin = true }`, defaults to `{ user = true }`). On QBCore this mirrors `QBCore.Functions.GetPermission`, on ESX/QBox the single group string is wrapped into a set so callers can do `ranks[name] == true` uniformly.
 
 ---Client-side wrapper around the local player. Methods read/write live
 ---framework state.
