@@ -241,6 +241,15 @@
 ---@class BridgeProgress
 ---@field run fun(options: BridgeProgressOptions): boolean Returns true when the bar completed, false when cancelled.
 
+---Difficulty descriptor accepted by `bridge.skillcheck.run`. Mirrors the
+---`lib.skillCheck` contract: a single preset name, an array of presets for
+---multi-step checks, or a `{ areaSize, speedMultiplier }` table.
+---@alias BridgeSkillCheckDifficulty string | string[] | { areaSize: number, speedMultiplier: number }
+
+---Skill check minigame provider (ox_lib, ...).
+---@class BridgeSkillCheck
+---@field run fun(difficulty: BridgeSkillCheckDifficulty, inputs?: string[]): boolean Returns true when the player passed every check.
+
 ---Consumer-facing root table fetched through
 ---`exports.lyre_bridge:getBridge()`. Modules are populated lazily; methods
 ---unknown to the active provider return `nil` silently.
@@ -262,3 +271,4 @@
 ---@field fuel BridgeFuel
 ---@field dispatch BridgeDispatch
 ---@field progress BridgeProgress
+---@field skillcheck BridgeSkillCheck
