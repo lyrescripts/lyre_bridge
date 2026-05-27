@@ -142,6 +142,8 @@
 ---@class BridgeTarget
 ---@field addLocalEntity fun(entity: integer, options: BridgeTargetOption[])
 ---@field removeLocalEntity fun(entity: integer, optionNames?: string[])
+---@field addGlobalVehicle fun(options: BridgeTargetOption[])
+---@field removeGlobalVehicle fun(optionNames?: string[])
 ---@field addSphereZone fun(zone: { id: string, name?: string, coords: vector3, radius: number, distance?: number, debug?: boolean, options: BridgeTargetOption[] }): string? Returns the provider's internal zone id when available.
 ---@field removeZone fun(id: string)
 

@@ -21,6 +21,18 @@ function provider:removeLocalEntity(entity, optionNames)
     exports.ox_target:removeLocalEntity(entity, optionNames)
 end
 
+---Attach target options to every vehicle.
+---@param options BridgeTargetOption[]
+function provider:addGlobalVehicle(options)
+    exports.ox_target:addGlobalVehicle(options)
+end
+
+---Detach global vehicle target options.
+---@param optionNames? string[] When provided, only these options are removed.
+function provider:removeGlobalVehicle(optionNames)
+    exports.ox_target:removeGlobalVehicle(optionNames)
+end
+
 ---Register a spherical interaction zone.
 ---@param zone { id: string, coords: vector3, radius: number, options: BridgeTargetOption[] }
 ---@return string? id
