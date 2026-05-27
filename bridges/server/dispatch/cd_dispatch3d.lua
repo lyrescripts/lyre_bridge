@@ -8,7 +8,7 @@ end
 
 ---@param payload BridgeDispatchPayload
 function provider:send(payload)
-    TriggerClientEvent("cd_dispatch:AddNotification", -1, {
+    TriggerEvent("cd_dispatch:AddNotification", {
         job_table = payload.jobs or { "police" },
         coords = payload.coords,
         title = payload.title or "Dispatch",
