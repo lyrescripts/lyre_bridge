@@ -2,7 +2,7 @@ local provider = LyreBridge.registerProvider("client", "inventory", "tgiann_inve
 
 ---Resolve the active TGIANN inventory resource name.
 ---@return string resourceName The resource name to call.
-local function getResourceName()
+function provider:getResourceName()
     if bridge.core.isStarted("tgiann-inventory") then
         return "tgiann-inventory"
     end
@@ -22,7 +22,7 @@ end
 
 ---Cache the active resource name.
 function provider:init()
-    self.resourceName = getResourceName()
+    self.resourceName = self:getResourceName()
 end
 
 ---@param itemName string

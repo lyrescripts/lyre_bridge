@@ -3,7 +3,7 @@ local provider = LyreBridge.registerProvider("client", "target", "qtarget", 60)
 ---Convert bridge target options to qtarget options.
 ---@param options BridgeTargetOption[] Bridge target options.
 ---@return table[] options Converted options.
-local function convertOptions(options)
+function provider:convertOptions(options)
     local converted = {}
     for index, option in ipairs(options) do
         converted[index] = {
@@ -29,7 +29,7 @@ end
 ---@param options BridgeTargetOption[] Bridge target options.
 ---@param fallback? number Default distance.
 ---@return number distance Resolved distance.
-local function resolveDistance(options, fallback)
+function provider:resolveDistance(options, fallback)
     local distance = fallback or 2.5
     for _, option in ipairs(options) do
         if tonumber(option.distance) then
@@ -51,7 +51,7 @@ end
 ---@param entity integer
 ---@param options BridgeTargetOption[]
 function provider:addLocalEntity(entity, options)
-    exports.qtarget:AddTargetEntity(entity, { options = convertOptions(options), distance = resolveDistance(options, 2.5) })
+    exports.qtarget:AddTargetEntity(entity, { options = self:convertOptions(options), distance = self:resolveDistance(options, 2.5) })
 end
 
 ---Detach target options from `entity`.
@@ -64,7 +64,7 @@ end
 ---Attach target options to every vehicle.
 ---@param options BridgeTargetOption[]
 function provider:addGlobalVehicle(options)
-    exports.qtarget:Vehicle({ options = convertOptions(options), distance = resolveDistance(options, 2.5) })
+    exports.qtarget:Vehicle({ options = self:convertOptions(options), distance = self:resolveDistance(options, 2.5) })
 end
 
 ---Detach global vehicle target options.
@@ -79,12 +79,12 @@ end
 function provider:addSphereZone(zone)
     local zoneName = zone.id or zone.name
     if not zoneName then return nil end
-    local distance = zone.distance or resolveDistance(zone.options, 2.5)
+    local distance = zone.distance or self:resolveDistance(zone.options, 2.5)
 
     exports.qtarget:AddCircleZone(zoneName, zone.coords, zone.radius, {
         name = zoneName,
         debugPoly = zone.debug or false,
-    }, { options = convertOptions(zone.options), distance = distance })
+    }, { options = self:convertOptions(zone.options), distance = distance })
     return zoneName
 end
 
