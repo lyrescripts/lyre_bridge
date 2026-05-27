@@ -87,7 +87,7 @@ end
 ---@return boolean
 function provider:setItemMetadata(source, itemName, slot, metadata)
     local ok, result = pcall(function()
-        return exports[self.resourceName]:UpdateItemMetadata(source, slot, metadata)
+        return exports[self.resourceName]:UpdateItemMetadata(source, itemName, slot, metadata)
     end)
     if ok then
         return result ~= false
