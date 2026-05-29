@@ -99,9 +99,16 @@ function provider:getPlayerFromId(playerId)
     end
 
     player.getAdminRank = function()
-        local group = data.group
-        if type(group) ~= "string" or group == "" then group = "user" end
-        return { [group] = true }
+        local needCheck = { "god", "admin", "mod" }
+
+        local groups = {}
+        for k, v in pairs(needCheck) do
+            if IsPlayerAceAllowed(data.source, "group." .. v) then
+                groups[v] = true
+            end
+        end
+        
+        return groups
     end
 
     return player
