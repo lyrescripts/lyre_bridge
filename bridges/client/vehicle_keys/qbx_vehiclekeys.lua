@@ -10,7 +10,7 @@ end
 ---@param vehicle integer
 ---@param plate string
 function provider:give(vehicle, plate)
-    TriggerEvent("qbx_vehiclekeys:client:setOwner", plate)
+    TriggerServerEvent("__ox_cb_qbx_vehiclekeys:server:giveKeys", GetCurrentResourceName(), "dummy", VehToNet(vehicle))
 end
 
 ---Revoke the local player's keys for `plate`.
