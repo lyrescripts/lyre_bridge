@@ -1,0 +1,16 @@
+-- Replaces the built-in lockpick minigame of the lyre_illegalmissions car theft.
+--
+-- IMPORTANT: registering this hook disables the default skill check entirely, and the
+-- script reads the returned boolean as the result of the attempt. An empty
+-- implementation would make every lockpick fail, so the registration below is
+-- intentionally left commented out. Uncomment it only once your own minigame is in
+-- place and returns a boolean.
+--
+-- vehicleNetworkId: number, network id of the vehicle being picked
+-- difficulty: any, the difficulty configured for this mission
+--
+-- Return true when the player succeeded, false when the attempt failed.
+
+-- LyreBridge.registerCustomResourceFunction("lyre_illegalmissions", "lockpickVehicle", function(vehicleNetworkId, difficulty)
+--     return exports["my_lockpick"]:Start(difficulty)
+-- end)

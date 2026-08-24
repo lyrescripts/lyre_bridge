@@ -1,0 +1,19 @@
+-- Delivers the legacy self alert exported by lyre_illegalmissions as `selfAlert`.
+--
+-- IMPORTANT: without this hook the legacy `selfAlert` export reports a failure and
+-- shows nothing, which is the intended default. An empty implementation would instead
+-- report success while displaying nothing, so the registration below is intentionally
+-- left commented out. Uncomment it only once your own alert is in place.
+--
+-- target: string, always "self" for this export
+-- coords: vector3, where the alert should be shown
+-- radius: number, blip radius in metres
+-- title: string, alert title
+-- description: string, alert description
+--
+-- Return false to report a failed alert; any other value counts as delivered.
+
+-- LyreBridge.registerCustomResourceFunction("lyre_illegalmissions", "alert", function(target, coords, radius, title, description)
+--     exports["my_dispatch"]:SelfAlert(coords, radius, title, description)
+--     return true
+-- end)

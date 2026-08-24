@@ -1,0 +1,17 @@
+-- Replaces the built-in cash grab of the lyre_illegalmissions money truck.
+--
+-- IMPORTANT: registering this hook disables the default progress bar entirely, and any
+-- return value other than false counts as a completed grab. An empty implementation
+-- would therefore hand out every bag instantly, so the registration below is
+-- intentionally left commented out. Uncomment it only once your own interaction is in
+-- place and returns a boolean.
+--
+-- truckEntity: number, the armored truck entity handle
+-- bagIndex: number, one-based index of the bag being taken
+-- cancelCallback: function, call it to abort the current grab
+--
+-- Return true when the bag was taken, false when the player cancelled or failed.
+
+-- LyreBridge.registerCustomResourceFunction("lyre_illegalmissions", "grabMoney", function(truckEntity, bagIndex, cancelCallback)
+--     return exports["my_animations"]:GrabBag(truckEntity, bagIndex)
+-- end)

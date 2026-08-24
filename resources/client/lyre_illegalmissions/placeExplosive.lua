@@ -1,0 +1,15 @@
+-- Replaces the built-in explosive placement of the lyre_illegalmissions money truck.
+--
+-- IMPORTANT: registering this hook disables the default progress bar entirely, and the
+-- script reads the returned boolean as the result of the attempt. An empty
+-- implementation would make every placement fail, so the registration below is
+-- intentionally left commented out. Uncomment it only once your own interaction is in
+-- place and returns a boolean.
+--
+-- truckEntity: number, the armored truck entity handle
+--
+-- Return true when the explosive was placed, false when the player cancelled or failed.
+
+-- LyreBridge.registerCustomResourceFunction("lyre_illegalmissions", "placeExplosive", function(truckEntity)
+--     return exports["my_explosives"]:Place(truckEntity)
+-- end)
