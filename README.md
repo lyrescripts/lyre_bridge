@@ -31,6 +31,21 @@ config.lua              global defaults (locale, interact)
 types.lua               LuaLS annotations describing the public surface
 ```
 
+## Extension hooks
+
+Files under `resources/<side>/<resource>/` register optional per-resource hooks. Two
+kinds ship in this repository:
+
+- **Additive hooks** are registered with an empty body. They run alongside the built-in
+  behaviour and their return value is ignored, so leaving them empty is harmless.
+- **Replacing hooks** disable the built-in behaviour as soon as they are registered, and
+  the consumer reads their return value. Their registration ships commented out, because
+  an empty implementation would silently break the feature. Uncomment one only once your
+  own implementation returns the documented value.
+
+Each file documents its own arguments, expected return value and which of the two kinds
+it belongs to.
+
 ## Configuration
 
 Set in `server.cfg`. All knobs are convars. The values below match the

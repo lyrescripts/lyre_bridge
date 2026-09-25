@@ -1,0 +1,20 @@
+-- Replaces the built-in police dispatch of lyre_illegalmissions.
+--
+-- IMPORTANT: registering this hook disables the default dispatch provider entirely.
+-- An empty implementation would therefore silence every mission alert, so the
+-- registration below is intentionally left commented out. Uncomment it only once your
+-- own dispatch call is in place.
+--
+-- jobName: string, one entry of Config.policeJobs
+-- coords: vector3, where the alert should be shown
+-- radius: number, blip radius in metres
+-- title: string, dispatch title
+-- description: string, dispatch description
+-- memberSources: table of server ids taking part in the mission
+--
+-- Return false to report a failed dispatch; any other value counts as delivered.
+
+-- LyreBridge.registerCustomResourceFunction("lyre_illegalmissions", "alertJob", function(jobName, coords, radius, title, description, memberSources)
+--     exports["my_dispatch"]:SendAlert(jobName, coords, radius, title, description)
+--     return true
+-- end)
