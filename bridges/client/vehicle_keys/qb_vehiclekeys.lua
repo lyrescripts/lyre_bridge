@@ -16,5 +16,5 @@ end
 ---Revoke the local player's keys for `plate`.
 ---@param plate string
 function provider:remove(plate)
-    TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
+    TriggerServerEvent("qb-vehiclekeys:server:RemoveVehicleKeys", plate)
 end
