@@ -6,15 +6,20 @@ function provider:detect()
     return bridge.core.isStarted("qbx_vehiclekeys")
 end
 
+-- Plate-based events from qbx_vehiclekeys' qb bridge: the server waits for
+-- freshly spawned vehicles before resolving the plate, unlike the netId path.
+
 ---Grant the local player keys for `plate`.
 ---@param vehicle integer
 ---@param plate string
 function provider:give(vehicle, plate)
-    TriggerServerEvent("__ox_cb_qbx_vehiclekeys:server:giveKeys", GetCurrentResourceName(), "dummy", VehToNet(vehicle))
+    plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
+    TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
 end
 
 ---Revoke the local player's keys for `plate`.
 ---@param plate string
 function provider:remove(plate)
-    TriggerServerEvent("qbx_vehiclekeys:server:removeKeys", plate)
+    plate = plate and plate:gsub("^%s*(.-)%s*$", "%1")
+    TriggerServerEvent("qb-vehiclekeys:server:removeKeys", plate)
 end
