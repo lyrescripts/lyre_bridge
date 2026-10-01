@@ -45,6 +45,12 @@ function provider:getPlayerFromId(playerId)
         return xPlayer.getJob()
     end
 
+    ---ESX has no built-in primary gang.
+    ---@return BridgeGang
+    player.getGang = function()
+        return { name = "none", grade = 0 }
+    end
+
     player.getAccount = function(account)
         return xPlayer.getAccount(account).money
     end

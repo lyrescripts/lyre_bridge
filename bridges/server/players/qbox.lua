@@ -50,6 +50,20 @@ function provider:getPlayerFromId(playerId)
         return data.job
     end
 
+    ---Current primary gang with a numeric grade for consumers.
+    ---@return BridgeGang
+    player.getGang = function()
+        local gang = (qboxPlayer.PlayerData or qboxPlayer).gang or {}
+        local grade = gang.grade
+        return {
+            name = gang.name or "none",
+            label = gang.label,
+            grade = tonumber(type(grade) == "table" and grade.level or grade) or 0,
+            onduty = gang.onduty,
+            isboss = gang.isboss,
+        }
+    end
+
     player.getAccount = function(account)
         local key = ({ money = "cash", black_money = "crypto" })[account] or account or "cash"
         return data.money and data.money[key] or 0

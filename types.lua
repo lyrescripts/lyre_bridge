@@ -43,6 +43,13 @@
 ---@field debug boolean? When true, `bridge.core.log("debug", ...)` lines are printed.
 ---@field customFunctions table<string, table<string, function>> Keyed by `resourceName -> fnName`.
 
+---@class BridgeGang
+---@field name string Primary gang name, or "none".
+---@field label string|nil Display label.
+---@field grade integer Numeric gang grade across frameworks.
+---@field onduty boolean|nil Missing duty flags are treated as on duty.
+---@field isboss boolean|nil Framework gang management flag.
+
 ---Server-side wrapper around a framework player object. Methods on this
 ---table are closures captured by the active players provider; they execute
 ---inside `lyre_bridge`'s runtime when called from a consumer.
@@ -50,6 +57,7 @@
 ---@field source integer Player server id.
 ---@field raw any Native framework player object (xPlayer, QBPlayer, ...).
 ---@field getIdentifier fun(): string
+---@field getGang fun(): BridgeGang Current primary gang and numeric grade.
 ---@field getName fun(): string
 ---@field getFirstName fun(): string
 ---@field getLastName fun(): string
