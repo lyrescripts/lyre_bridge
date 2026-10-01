@@ -47,11 +47,10 @@ function provider:getJobRank()
     return tonumber(job and job.grade) or 0
 end
 
----ESX has no native gang concept; returns a stable placeholder so
----callers can iterate without nil checks.
----@return "ballas"
+---ESX has no native gang concept. Adapt this method to the server's gang integration.
+---@return "none"
 function provider:getGang()
-    return "ballas"
+    return "none"
 end
 
 ---ESX has no native gang grade.
