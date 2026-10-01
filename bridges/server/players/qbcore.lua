@@ -44,8 +44,16 @@ function provider:getPlayerFromId(playerId)
         return charinfo.lastname or ""
     end
 
+    ---Current job with a numeric grade, preserving framework fields.
+    ---@return table|nil
     player.getJob = function()
-        return data.job
+        local job = qbPlayer.PlayerData.job
+        if not job then return nil end
+        local normalized = {}
+        for key, value in pairs(job) do normalized[key] = value end
+        local grade = job.grade
+        normalized.grade = tonumber(type(grade) == "table" and grade.level or grade) or 0
+        return normalized
     end
 
     ---Current primary gang with a numeric grade for consumers.
