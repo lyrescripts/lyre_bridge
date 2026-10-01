@@ -83,10 +83,21 @@ end
 ---@param metadata table
 ---@return boolean
 function provider:setItemMetadata(source, itemName, slot, metadata)
+    slot = tonumber(slot)
+    if type(itemName) ~= "string" or type(metadata) ~= "table" or not slot or slot < 1 or slot % 1 ~= 0 then return false end
     local qbPlayer = self.object.Functions.GetPlayer(source)
-    if not qbPlayer then return false end
-    qbPlayer.Functions.SetInventory(qbPlayer.PlayerData.items)
-    return true
+    if not qbPlayer or not qbPlayer.Functions.SetInventory then return false end
+    local items = qbPlayer.PlayerData.items
+    local item = items and items[slot]
+    if not item or item.name ~= itemName then return false end
+
+    local updatedItems = {}
+    for key, value in pairs(items) do updatedItems[key] = value end
+    local updatedItem = {}
+    for key, value in pairs(item) do updatedItem[key] = value end
+    updatedItem.info = metadata
+    updatedItems[slot] = updatedItem
+    return qbPlayer.Functions.SetInventory(updatedItems) ~= false
 end
 
 ---Return the item currently held in `slot`.
