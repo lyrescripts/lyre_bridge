@@ -150,17 +150,3 @@ value to its call site. Replacement hooks must implement their full behavior and
 return the value expected by the consumer; an empty replacement can disable the
 built-in operation. The shipped templates use the internal bridge registry and
 can serve as references for those arguments.
-
-## Tests
-
-```sh
-python -m pip install -r tests/requirements.txt
-python -m unittest discover -s tests -p 'test_*.py' -v
-```
-
-The suite loads the real Lua provider and engine files through Lua 5.4 and supplies
-controlled framework, export and native boundaries. It covers every provider's
-documented method surface plus the framework, inventory, zone, callback and
-initialization behavior above. GitHub Actions runs it on Python 3.11 and 3.13.
-Real FiveM replication and proprietary external integrations require in-game
-validation.
