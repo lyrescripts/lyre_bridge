@@ -1,3 +1,15 @@
+--[[
+     _                       _____           _       _
+    | |                     / ____|         (_)     | |      
+    | |    _   _ _ __ ___  | (___   ___ _ __ _ _ __ | |_ ___ 
+    | |   | | | | '__/ _ \  \___ \ / __| '__| | '_ \| __/ __|
+    | |___| |_| | | |  __/  ____) | (__| |  | | |_) | |_\__ \
+    |______\__, |_|  \___| |_____/ \___|_|  |_| .__/ \__|___/
+            __/ |                             | |            
+           |___/                              |_|
+
+]]
+
 ---@meta
 
 ---Side on which a provider is registered and resolved.
@@ -192,7 +204,7 @@
 
 ---Server-side vehicle helpers.
 ---@class BridgeVehiclesServer
----@field generateRandomPlate fun(format?: string): string Optional template — `A` -> uppercase letter, digit -> random digit, `^X` keeps `X` literal. Max length 8.
+---@field generateRandomPlate fun(format?: string): string Optional template: `A` -> uppercase letter, digit -> random digit, `^X` keeps `X` literal. Max length 8.
 
 ---Client-side vehicle property serialization.
 ---@class BridgeVehiclesClient
