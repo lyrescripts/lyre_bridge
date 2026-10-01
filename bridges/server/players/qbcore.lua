@@ -95,8 +95,13 @@ function provider:getPlayerFromId(playerId)
     end
 
     player.getItemCount = function(itemName)
-        local item = qbPlayer.Functions.GetItemByName(itemName)
-        return item and item.amount or 0
+        if type(itemName) ~= "string" then return 0 end
+        local name = string.lower(itemName)
+        local count = 0
+        for _, item in pairs(qbPlayer.PlayerData.items or {}) do
+            if item and item.name == name then count = count + (tonumber(item.amount) or 0) end
+        end
+        return count
     end
 
     player.hasLicense = function(licenseType)

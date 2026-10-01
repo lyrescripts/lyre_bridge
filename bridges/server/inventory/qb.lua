@@ -42,10 +42,15 @@ end
 ---@param itemName string
 ---@return integer
 function provider:getItemCount(source, itemName)
+    if type(itemName) ~= "string" then return 0 end
     local qbPlayer = self.object.Functions.GetPlayer(source)
     if not qbPlayer then return 0 end
-    local item = qbPlayer.Functions.GetItemByName(itemName)
-    return item and item.amount or 0
+    local name = string.lower(itemName)
+    local count = 0
+    for _, item in pairs(qbPlayer.PlayerData.items or {}) do
+        if item and item.name == name then count = count + (tonumber(item.amount) or 0) end
+    end
+    return count
 end
 
 ---Whether the player carries at least `count` of `itemName` (default 1).
