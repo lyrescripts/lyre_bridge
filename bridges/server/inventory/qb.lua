@@ -63,7 +63,10 @@ end
 ---@param count integer
 ---@return boolean
 function provider:canCarryItem(source, itemName, count)
-    return true
+    count = count or 1
+    if type(itemName) ~= "string" or itemName == "" or type(count) ~= "number" or count < 1 or count % 1 ~= 0 then return false end
+    if not self.object.Functions.GetPlayer(source) or not bridge.core.isStarted("qb-inventory") then return false end
+    return exports["qb-inventory"]:CanAddItem(source, itemName, count) == true
 end
 
 ---Top up the player's ammo for a given weapon.
