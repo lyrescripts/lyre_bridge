@@ -4,13 +4,15 @@ LyreBridge.customFunctions = {}
 ---resource name and look-up is per-caller; see `bridge.custom.call`.
 ---@param resourceName string
 ---@param fnName string
----@param fn function
+---@param fn function|table Lua callback or callable CFX reference.
 function LyreBridge.registerCustomResourceFunction(resourceName, fnName, fn)
     assert(type(resourceName) == "string" and resourceName ~= "",
         "registerCustomResourceFunction: resource name is required")
     assert(type(fnName) == "string" and fnName ~= "",
         "registerCustomResourceFunction: function name is required")
-    assert(type(fn) == "function",
+    local metatable = type(fn) == "table" and getmetatable(fn)
+    local callable = type(fn) == "function" or (type(metatable) == "table" and type(metatable.__call) == "function")
+    assert(callable,
         "registerCustomResourceFunction: function is required")
 
     LyreBridge.customFunctions[resourceName] = LyreBridge.customFunctions[resourceName] or {}
@@ -19,7 +21,7 @@ end
 
 ---Register a custom function for the invoking resource.
 ---@param fnName string
----@param fn function
+---@param fn function|table Lua callback or callable CFX reference.
 function bridge.custom.register(fnName, fn)
     local resource = GetInvokingResource() or GetCurrentResourceName()
     LyreBridge.registerCustomResourceFunction(resource, fnName, fn)

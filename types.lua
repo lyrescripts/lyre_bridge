@@ -41,7 +41,7 @@
 ---@field providers table<BridgeSide, table<string, Provider[]>>
 ---@field config table<string, any> Global defaults applied to every resource configuration.
 ---@field debug boolean? When true, `bridge.core.log("debug", ...)` lines are printed.
----@field customFunctions table<string, table<string, function>> Keyed by `resourceName -> fnName`.
+---@field customFunctions table<string, table<string, function|table>> Callable Lua callbacks or CFX references, keyed by resource and hook name.
 
 ---@class BridgeGang
 ---@field name string Primary gang name, or "none".
