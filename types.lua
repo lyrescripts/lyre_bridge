@@ -164,8 +164,8 @@
 ---@field removeLocalEntity fun(entity: integer, optionNames?: string[])
 ---@field addGlobalVehicle fun(options: BridgeTargetOption[])
 ---@field removeGlobalVehicle fun(optionNames?: string[])
----@field addSphereZone fun(zone: { id: string, name?: string, coords: vector3, radius: number, distance?: number, debug?: boolean, options: BridgeTargetOption[] }): string? Returns the provider's internal zone id when available.
----@field removeZone fun(id: string)
+---@field addSphereZone fun(zone: { id: string, name?: string, coords: vector3, radius: number, distance?: number, debug?: boolean, options: BridgeTargetOption[] }): string|integer|nil Returns a stable name or the provider's native id.
+---@field removeZone fun(id: string|integer)
 
 ---Server-side inventory surface; method semantics match ox_inventory and
 ---are emulated for QB / ESX. `slot` and `metadata` are optional everywhere.

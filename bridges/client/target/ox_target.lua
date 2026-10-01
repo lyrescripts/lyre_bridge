@@ -35,13 +35,18 @@ end
 
 ---Register a spherical interaction zone.
 ---@param zone { id: string, coords: vector3, radius: number, options: BridgeTargetOption[] }
----@return string? id
+---@return string|integer|nil id Stable name, or the native id for an unnamed zone.
 function provider:addSphereZone(zone)
-    return exports.ox_target:addSphereZone(zone)
+    local parameters = {}
+    for key, value in pairs(zone) do parameters[key] = value end
+    parameters.name = zone.id or zone.name
+    local id = exports.ox_target:addSphereZone(parameters)
+    if not id then return nil end
+    return parameters.name or id
 end
 
 ---Remove a previously-registered zone.
----@param id string
+---@param id string|integer Stable zone name or native id.
 function provider:removeZone(id)
     exports.ox_target:removeZone(id)
 end
