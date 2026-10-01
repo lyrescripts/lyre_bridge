@@ -32,6 +32,7 @@
 ---@field __name string
 ---@field __priority integer Lower wins; defaults to 100.
 ---@field __active boolean? Set to true after the first successful resolution.
+---@field __initRetryAt integer? Earliest retry time after failed initialization, in GetGameTimer milliseconds.
 ---@field detect fun(self: Provider): boolean Return true to claim ownership of the module.
 ---@field init? fun(self: Provider) Runs once before the provider serves its first call.
 
