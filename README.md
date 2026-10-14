@@ -123,9 +123,10 @@ is documented in `types.lua`.
 
 ## QB inventory and society dependencies
 
-The QB inventory provider checks capacity through `qb-inventory:CanAddItem` and
-requires that resource for capacity checks. Unsupported or unloaded inventories
-fail the check. Metadata updates validate the requested slot and item before
+The QB inventory provider checks capacity through `qb-inventory:CanAddItem` when
+that export is available. Older qb-inventory builds and forks such as ps-inventory
+or lj-inventory skip the pre-check and rely on `addItem` rejecting items that do
+not fit. Metadata updates validate the requested slot and item before
 saving an updated inventory; quantities include every matching slot.
 
 The QB society provider requires `qb-banking` for account balances and transfers.
