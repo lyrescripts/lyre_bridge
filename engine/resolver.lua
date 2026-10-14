@@ -2,7 +2,7 @@
 ---`lyre_bridge:provider:<side>:<module>:force` and
 ---`lyre_bridge:provider:<side>:<module>:disabled` convars before falling back
 ---to each provider's `detect()` callback. The selected provider's `init()` is
----invoked exactly once.
+---invoked once after successful initialization. Failed initialization is retried with a cooldown.
 ---@param side BridgeSide
 ---@param moduleName string
 ---@return Provider?
@@ -48,18 +48,26 @@ function LyreBridge.resolveProvider(side, moduleName)
                     end
 
                     if detected then
-                        if not provider.__active then
+                        local ready = provider.__active == true
+                        if not ready and (not provider.__initRetryAt or GetGameTimer() >= provider.__initRetryAt) then
+                            local initialized = true
                             if type(provider.init) == "function" then
                                 local ok, err = pcall(provider.init, provider)
                                 if not ok then
+                                    initialized = false
+                                    provider.__initRetryAt = GetGameTimer() + 1000
                                     print(("[lyre_bridge][ERROR] Provider %s/%s init failed: %s"):format(
                                         provider.__module, provider.__name, tostring(err)
                                     ))
                                 end
                             end
-                            provider.__active = true
+                            if initialized then
+                                provider.__active = true
+                                provider.__initRetryAt = nil
+                                ready = true
+                            end
                         end
-                        return provider
+                        if ready then return provider end
                     end
                 end
             end

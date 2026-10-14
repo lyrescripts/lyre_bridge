@@ -1,3 +1,15 @@
+--[[
+     _                       _____           _       _
+    | |                     / ____|         (_)     | |      
+    | |    _   _ _ __ ___  | (___   ___ _ __ _ _ __ | |_ ___ 
+    | |   | | | | '__/ _ \  \___ \ / __| '__| | '_ \| __/ __|
+    | |___| |_| | | |  __/  ____) | (__| |  | | |_) | |_\__ \
+    |______\__, |_|  \___| |_____/ \___|_|  |_| .__/ \__|___/
+            __/ |                             | |            
+           |___/                              |_|
+
+]]
+
 ---@meta
 
 ---Side on which a provider is registered and resolved.
@@ -20,6 +32,7 @@
 ---@field __name string
 ---@field __priority integer Lower wins; defaults to 100.
 ---@field __active boolean? Set to true after the first successful resolution.
+---@field __initRetryAt integer? Earliest retry time after failed initialization, in GetGameTimer milliseconds.
 ---@field detect fun(self: Provider): boolean Return true to claim ownership of the module.
 ---@field init? fun(self: Provider) Runs once before the provider serves its first call.
 
@@ -29,7 +42,14 @@
 ---@field providers table<BridgeSide, table<string, Provider[]>>
 ---@field config table<string, any> Global defaults applied to every resource configuration.
 ---@field debug boolean? When true, `bridge.core.log("debug", ...)` lines are printed.
----@field customFunctions table<string, table<string, function>> Keyed by `resourceName -> fnName`.
+---@field customFunctions table<string, table<string, function|table>> Callable Lua callbacks or CFX references, keyed by resource and hook name.
+
+---@class BridgeGang
+---@field name string Primary gang name, or "none".
+---@field label string|nil Display label.
+---@field grade integer Numeric gang grade across frameworks.
+---@field onduty boolean|nil Missing duty flags are treated as on duty.
+---@field isboss boolean|nil Framework gang management flag.
 
 ---Server-side wrapper around a framework player object. Methods on this
 ---table are closures captured by the active players provider; they execute
@@ -38,6 +58,7 @@
 ---@field source integer Player server id.
 ---@field raw any Native framework player object (xPlayer, QBPlayer, ...).
 ---@field getIdentifier fun(): string
+---@field getGang fun(): BridgeGang Current primary gang and numeric grade.
 ---@field getName fun(): string
 ---@field getFirstName fun(): string
 ---@field getLastName fun(): string
@@ -144,8 +165,8 @@
 ---@field removeLocalEntity fun(entity: integer, optionNames?: string[])
 ---@field addGlobalVehicle fun(options: BridgeTargetOption[])
 ---@field removeGlobalVehicle fun(optionNames?: string[])
----@field addSphereZone fun(zone: { id: string, name?: string, coords: vector3, radius: number, distance?: number, debug?: boolean, options: BridgeTargetOption[] }): string? Returns the provider's internal zone id when available.
----@field removeZone fun(id: string)
+---@field addSphereZone fun(zone: { id: string, name?: string, coords: vector3, radius: number, distance?: number, debug?: boolean, options: BridgeTargetOption[] }): string|integer|nil Returns a stable name or the provider's native id.
+---@field removeZone fun(id: string|integer)
 
 ---Server-side inventory surface; method semantics match ox_inventory and
 ---are emulated for QB / ESX. `slot` and `metadata` are optional everywhere.
@@ -192,7 +213,7 @@
 
 ---Server-side vehicle helpers.
 ---@class BridgeVehiclesServer
----@field generateRandomPlate fun(format?: string): string Optional template — `A` -> uppercase letter, digit -> random digit, `^X` keeps `X` literal. Max length 8.
+---@field generateRandomPlate fun(format?: string): string Optional template: `A` -> uppercase letter, digit -> random digit, `^X` keeps `X` literal. Max length 8.
 
 ---Client-side vehicle property serialization.
 ---@class BridgeVehiclesClient

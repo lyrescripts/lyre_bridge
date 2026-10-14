@@ -42,10 +42,15 @@ end
 ---@param itemName string
 ---@return integer
 function provider:getItemCount(source, itemName)
+    if type(itemName) ~= "string" then return 0 end
     local qbPlayer = self.object.Functions.GetPlayer(source)
     if not qbPlayer then return 0 end
-    local item = qbPlayer.Functions.GetItemByName(itemName)
-    return item and item.amount or 0
+    local name = string.lower(itemName)
+    local count = 0
+    for _, item in pairs(qbPlayer.PlayerData.items or {}) do
+        if item and item.name == name then count = count + (tonumber(item.amount) or 0) end
+    end
+    return count
 end
 
 ---Whether the player carries at least `count` of `itemName` (default 1).
@@ -63,7 +68,17 @@ end
 ---@param count integer
 ---@return boolean
 function provider:canCarryItem(source, itemName, count)
-    return true
+    count = count or 1
+    if type(itemName) ~= "string" or itemName == "" or type(count) ~= "number" or count < 1 or count % 1 ~= 0 then return false end
+    if not self.object.Functions.GetPlayer(source) then return false end
+    -- Older qb-inventory builds and forks such as ps-inventory or lj-inventory do not
+    -- export CanAddItem. They skip the pre-check and addItem still rejects items that do not fit.
+    if not bridge.core.isStarted("qb-inventory") then return true end
+    local ok, canAdd = pcall(function()
+        return exports["qb-inventory"]:CanAddItem(source, itemName, count)
+    end)
+    if not ok then return true end
+    return canAdd == true
 end
 
 ---Top up the player's ammo for a given weapon.
@@ -83,10 +98,21 @@ end
 ---@param metadata table
 ---@return boolean
 function provider:setItemMetadata(source, itemName, slot, metadata)
+    slot = tonumber(slot)
+    if type(itemName) ~= "string" or type(metadata) ~= "table" or not slot or slot < 1 or slot % 1 ~= 0 then return false end
     local qbPlayer = self.object.Functions.GetPlayer(source)
-    if not qbPlayer then return false end
-    qbPlayer.Functions.SetInventory(qbPlayer.PlayerData.items)
-    return true
+    if not qbPlayer or not qbPlayer.Functions.SetInventory then return false end
+    local items = qbPlayer.PlayerData.items
+    local item = items and items[slot]
+    if not item or item.name ~= itemName then return false end
+
+    local updatedItems = {}
+    for key, value in pairs(items) do updatedItems[key] = value end
+    local updatedItem = {}
+    for key, value in pairs(item) do updatedItem[key] = value end
+    updatedItem.info = metadata
+    updatedItems[slot] = updatedItem
+    return qbPlayer.Functions.SetInventory(updatedItems) ~= false
 end
 
 ---Return the item currently held in `slot`.

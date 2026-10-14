@@ -46,8 +46,30 @@ function provider:getPlayerFromId(playerId)
         return charinfo.lastname or charinfo.lastName or ""
     end
 
+    ---Current job with a numeric grade, preserving framework fields.
+    ---@return table|nil
     player.getJob = function()
-        return data.job
+        local job = (qboxPlayer.PlayerData or qboxPlayer).job
+        if not job then return nil end
+        local normalized = {}
+        for key, value in pairs(job) do normalized[key] = value end
+        local grade = job.grade
+        normalized.grade = tonumber(type(grade) == "table" and grade.level or grade) or 0
+        return normalized
+    end
+
+    ---Current primary gang with a numeric grade for consumers.
+    ---@return BridgeGang
+    player.getGang = function()
+        local gang = (qboxPlayer.PlayerData or qboxPlayer).gang or {}
+        local grade = gang.grade
+        return {
+            name = gang.name or "none",
+            label = gang.label,
+            grade = tonumber(type(grade) == "table" and grade.level or grade) or 0,
+            onduty = gang.onduty,
+            isboss = gang.isboss,
+        }
     end
 
     player.getAccount = function(account)
@@ -145,8 +167,9 @@ end
 ---@return BridgePlayer[]
 function provider:getOnlinePlayers()
     local players = {}
-    for _, source in pairs(self.object:GetPlayers()) do
-        players[#players + 1] = self:getPlayerFromId(source)
+    for source in pairs(self.object:GetQBPlayers()) do
+        local player = self:getPlayerFromId(source)
+        if player then players[#players + 1] = player end
     end
     return players
 end
@@ -166,12 +189,12 @@ function provider:getOnlinePlayersByJob(jobs, onDutyOnly)
     end
 
     local players = {}
-    for _, source in pairs(self.object:GetPlayers()) do
-        local qboxPlayer = self.object:GetPlayer(source)
+    for source, qboxPlayer in pairs(self.object:GetQBPlayers()) do
         local job = qboxPlayer and qboxPlayer.PlayerData.job
         if job and jobMap[job.name] then
             if not onDutyOnly or job.onduty ~= false then
-                players[#players + 1] = self:getPlayerFromId(source)
+                local player = self:getPlayerFromId(source)
+                if player then players[#players + 1] = player end
             end
         end
     end
@@ -187,13 +210,14 @@ function provider:getPlayersInZone(coords, radius, options)
     options = options or {}
     local players = {}
 
-    for _, source in pairs(self.object:GetPlayers()) do
+    for source in pairs(self.object:GetQBPlayers()) do
         if not options.exceptions or not options.exceptions[source] then
             local ped = GetPlayerPed(source)
             local playerCoords = GetEntityCoords(ped)
             if #(coords - playerCoords) <= radius then
                 if options.includeDead or GetEntityHealth(ped) > 0 then
-                    players[#players + 1] = self:getPlayerFromId(source)
+                    local player = self:getPlayerFromId(source)
+                    if player then players[#players + 1] = player end
                 end
             end
         end

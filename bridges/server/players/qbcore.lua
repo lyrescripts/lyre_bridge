@@ -44,8 +44,30 @@ function provider:getPlayerFromId(playerId)
         return charinfo.lastname or ""
     end
 
+    ---Current job with a numeric grade, preserving framework fields.
+    ---@return table|nil
     player.getJob = function()
-        return data.job
+        local job = qbPlayer.PlayerData.job
+        if not job then return nil end
+        local normalized = {}
+        for key, value in pairs(job) do normalized[key] = value end
+        local grade = job.grade
+        normalized.grade = tonumber(type(grade) == "table" and grade.level or grade) or 0
+        return normalized
+    end
+
+    ---Current primary gang with a numeric grade for consumers.
+    ---@return BridgeGang
+    player.getGang = function()
+        local gang = qbPlayer.PlayerData.gang or {}
+        local grade = gang.grade
+        return {
+            name = gang.name or "none",
+            label = gang.label,
+            grade = tonumber(type(grade) == "table" and grade.level or grade) or 0,
+            onduty = gang.onduty,
+            isboss = gang.isboss,
+        }
     end
 
     player.getAccount = function(account)
@@ -73,8 +95,13 @@ function provider:getPlayerFromId(playerId)
     end
 
     player.getItemCount = function(itemName)
-        local item = qbPlayer.Functions.GetItemByName(itemName)
-        return item and item.amount or 0
+        if type(itemName) ~= "string" then return 0 end
+        local name = string.lower(itemName)
+        local count = 0
+        for _, item in pairs(qbPlayer.PlayerData.items or {}) do
+            if item and item.name == name then count = count + (tonumber(item.amount) or 0) end
+        end
+        return count
     end
 
     player.hasLicense = function(licenseType)

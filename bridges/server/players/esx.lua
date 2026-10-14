@@ -41,8 +41,22 @@ function provider:getPlayerFromId(playerId)
         return xPlayer.get and xPlayer.get("lastName") or ""
     end
 
+    ---Current job with a numeric grade, preserving framework fields.
+    ---@return table|nil
     player.getJob = function()
-        return xPlayer.getJob()
+        local job = xPlayer.getJob()
+        if not job then return nil end
+        local normalized = {}
+        for key, value in pairs(job) do normalized[key] = value end
+        local grade = job.grade
+        normalized.grade = tonumber(type(grade) == "table" and grade.level or grade) or 0
+        return normalized
+    end
+
+    ---ESX has no built-in primary gang.
+    ---@return BridgeGang
+    player.getGang = function()
+        return { name = "none", grade = 0 }
     end
 
     player.getAccount = function(account)
