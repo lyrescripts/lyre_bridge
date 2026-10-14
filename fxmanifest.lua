@@ -3,7 +3,7 @@ game("gta5")
 
 author("Lyre Scripts")
 description("Provider-based compatibility bridge for the Lyre resource pack.")
-version("2.2.4")
+version("2.2.5")
 lua54("yes")
 
 escrow_ignore({
