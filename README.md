@@ -58,6 +58,18 @@ setr lyre_bridge:provider:client:notifications:disabled qbcore,esx
 setr lyre_bridge:checkForUpdates true
 ```
 
+Enable routine console logs per resource in `config.lua`:
+
+```lua
+LyreBridge.config.debug = {
+    lyre_hunting = false,
+    lyre_fuel = false,
+}
+```
+
+Set an entry to `true` to print its info/debug logs. Unlisted resources stay
+silent. Warnings and errors are always printed.
+
 ## Adding a consumer
 
 In your resource's `fxmanifest.lua`:

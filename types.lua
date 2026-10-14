@@ -16,7 +16,7 @@
 ---@alias BridgeSide "client" | "server" | "shared"
 
 ---Severity passed to `bridge.core.log`.
----@alias BridgeLogType "info" | "warning" | "error" | "debug"
+---@alias BridgeLogType "info" | "warning" | "warn" | "error" | "debug"
 
 ---Framework-specific notification color/style. Most bridges accept the
 ---four canonical values plus any string the underlying script supports.
@@ -41,7 +41,6 @@
 ---@class LyreBridge
 ---@field providers table<BridgeSide, table<string, Provider[]>>
 ---@field config table<string, any> Global defaults applied to every resource configuration.
----@field debug boolean? When true, `bridge.core.log("debug", ...)` lines are printed.
 ---@field customFunctions table<string, table<string, function|table>> Callable Lua callbacks or CFX references, keyed by resource and hook name.
 
 ---@class BridgeGang
@@ -94,7 +93,7 @@
 ---@field isStarted fun(resourceName: string): boolean Cached `GetResourceState` check.
 ---@field isAvailable fun(resourceName: string): boolean True when the resource is started OR any started resource declares `provide "<name>"` in its manifest.
 ---@field log fun(logType: BridgeLogType, msg: string, invoker?: string) Pretty-print to the FiveM console.
----@field setDebug fun(enabled: boolean) Toggle the `debug` log channel.
+---@field setDebug fun(enabled: boolean) Toggle info/debug logs for the invoking resource.
 ---@field checkVersion fun(resourceName?: string) Compare local resource version against the published manifest.
 
 ---Per-resource extension hook registry. Each consumer manages its own slot.
