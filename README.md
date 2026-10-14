@@ -27,7 +27,7 @@ bridges/<side>/<module>/<provider>.lua    auto-discovered providers
 resources/<side>/<resource>/<hook>.lua    optional per-resource extension hooks
 
 imports.lua             single shared_script that consumers load
-config.lua              global defaults (locale, interact)
+config.lua              global defaults (locale, interact, backgroundBlur, hud)
 types.lua               LuaLS annotations describing the public surface
 ```
 
@@ -40,9 +40,11 @@ defaults; only override what you actually want to change.
 # global defaults applied to every consumer
 setr lyre_bridge:locale en
 setr lyre_bridge:interact marker
+setr lyre_bridge:backgroundBlur false
 
 # per-resource override (wins over the global default)
 setr lyre_bridge:lyre_carwash:interact marker
+setr lyre_bridge:lyre_garage:backgroundBlur true
 
 # pin a specific provider (per side, or any side)
 setr lyre_bridge:provider:client:notifications:force ox_lib
@@ -77,6 +79,14 @@ In `config.lua`:
 ```lua
 Config = bridge.config.register({})
 ```
+
+The returned table already holds the global defaults from the bridge
+`config.lua`: `locale`, `interact`, `backgroundBlur` and the `hud` hooks.
+Server owners configure them once in the bridge, so a consumer config only
+lists its own settings. A key set in the consumer config wins over the
+bridge default, which keeps older consumer configs working. The `hud`
+hooks are functions, so they are edited in the bridge `config.lua` rather
+than through convars.
 
 Then call `bridge.X.Y` anywhere. The `bridge` global is available once
 `imports.lua` runs. The full surface is annotated in `types.lua`.
