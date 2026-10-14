@@ -1,10 +1,18 @@
+---Read a convar override. Convars are strings, so "true" and "false" become
+---booleans; otherwise "false" would enable a boolean setting.
 ---@param name string
----@return string?
+---@return string|boolean?
 local function readConvar(name)
     local sentinel = "__unset__"
     local value = GetConvar(name, sentinel)
     if value == sentinel or value == "" then
         return nil
+    end
+    if value == "true" then
+        return true
+    end
+    if value == "false" then
+        return false
     end
     return value
 end
