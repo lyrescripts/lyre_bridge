@@ -68,7 +68,36 @@ LyreBridge.config.debug = {
 ```
 
 Set an entry to `true` to print its info/debug logs. Unlisted resources stay
-silent. Warnings and errors are always printed.
+silent. A boolean enables or disables all resources; an absent value disables
+routine logs. Warnings and errors always print, including `warn` and mixed-case
+severities.
+
+```cfg
+# enable or disable routine logs globally on the server
+set lyre_bridge:debug true
+set lyre_bridge:debug false
+
+# individual overrides take priority, including false
+set lyre_bridge:lyre_hunting:debug false
+```
+
+Use `setr` instead of `set` to replicate a setting to clients. Logging reads
+convars on each call. Priority is: individual convar, global convar,
+`bridge.core.setDebug(enabled)` for the calling resource, then the configured
+table entry or boolean. `setDebug` works with an unchanged older `config.lua`
+and affects only its calling resource on that side. It does not modify shared
+defaults or override explicit convars.
+
+`bridge.config.get("debug")` uses the same resolution. Registration returns a
+boolean snapshot; call `get` again to read runtime changes. A resource-provided
+debug default is used after convars and runtime overrides. Routine logging
+itself uses the bridge defaults, so consumers need no local debug gate.
+
+Call `bridge.core.log(level, message)` directly, including inside callbacks.
+The immediate resource calling the bridge owns the log; when another resource
+invokes an export or callback, the resource executing that callback owns it.
+The optional third argument is for deliberate attribution, such as the bridge's
+asynchronous version checks.
 
 ## Adding a consumer
 
@@ -93,7 +122,7 @@ Config = bridge.config.register({})
 ```
 
 The returned table already holds the global defaults from the bridge
-`config.lua`: `locale`, `interact`, `backgroundBlur` and the `hud` hooks.
+`config.lua`: `locale`, `interact`, `backgroundBlur`, `debug` and the `hud` hooks.
 Server owners configure them once in the bridge, so a consumer config only
 lists its own settings. A key set in the consumer config wins over the
 bridge default, which keeps older consumer configs working. The `hud`

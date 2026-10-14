@@ -10,8 +10,10 @@ LyreBridge.config.interact = "marker"
 -- [boolean] → Blurs the game behind the menus of every Lyre resource.
 LyreBridge.config.backgroundBlur = false
 
--- [table] → Enable info/debug console logs by resource name. Warnings and errors are always printed.
+-- [table|boolean|nil] → Enable info/debug logs per resource, globally, or leave them disabled.
+-- Warnings and errors are always printed. Convars override these defaults.
 LyreBridge.config.debug = {
+    lyre_billing = false,
     lyre_boatschool = false,
     lyre_bridge = false,
     lyre_carrental = false,

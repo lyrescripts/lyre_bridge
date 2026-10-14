@@ -19,9 +19,39 @@ end
 
 for key in pairs(LyreBridge.config) do
     local override = readConvar("lyre_bridge:" .. key)
-    if override then
+    if key ~= "debug" and override ~= nil then
         LyreBridge.config[key] = override
     end
+end
+
+---Runtime log overrides are isolated from the shared defaults.
+---@type table<string, boolean>
+LyreBridge.resourceDebug = {}
+
+---Resolve routine logging with the same precedence for logs and config reads.
+---@param resourceName string
+---@param fallback? boolean Resource-provided default.
+---@return boolean
+function LyreBridge.resolveDebug(resourceName, fallback)
+    local override = readConvar("lyre_bridge:" .. resourceName .. ":debug")
+    if override ~= nil then
+        return override == true
+    end
+    override = readConvar("lyre_bridge:debug")
+    if override ~= nil then
+        return override == true
+    end
+    if LyreBridge.resourceDebug[resourceName] ~= nil then
+        return LyreBridge.resourceDebug[resourceName]
+    end
+    if fallback ~= nil then
+        return fallback == true
+    end
+    local debugConfig = LyreBridge.config.debug
+    if type(debugConfig) == "table" then
+        return debugConfig[resourceName] == true
+    end
+    return debugConfig == true
 end
 
 ---Resolve a single configuration key for the given resource, honoring its
@@ -31,6 +61,9 @@ end
 ---@param fallback? any
 ---@return any
 function LyreBridge.resolveConfigValue(resourceName, key, fallback)
+    if key == "debug" then
+        return LyreBridge.resolveDebug(resourceName, fallback)
+    end
     local override = readConvar("lyre_bridge:" .. resourceName .. ":" .. key)
     if override ~= nil then
         return override
@@ -62,6 +95,8 @@ function LyreBridge.registerResourceConfiguration(resourceName, config)
             resolved[key] = override
         end
     end
+
+    resolved.debug = LyreBridge.resolveDebug(resourceName, config.debug)
 
     return resolved
 end
