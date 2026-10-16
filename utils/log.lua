@@ -1,12 +1,17 @@
----Emit a colored log line through the FiveM console. `debug` lines are only
----printed when `LyreBridge.debug` is enabled.
----@param logType BridgeLogType
----@param msg string
+---Emit a console message, filtering info/debug logs by resource configuration.
+---@param logType? BridgeLogType Defaults to info.
+---@param msg any Message converted to text.
 ---@param invoker? string Defaults to the invoking resource.
+---@return void
 function bridge.core.log(logType, msg, invoker)
-    logType = logType and string.lower(logType) or "info"
+    logType = type(logType) == "string" and string.lower(logType) or "info"
+    if logType == "warn" then
+        logType = "warning"
+    end
 
-    if logType == "debug" and not LyreBridge.debug then
+    local resourceName = invoker or GetInvokingResource() or GetCurrentResourceName()
+    if logType ~= "error" and logType ~= "warning"
+        and not LyreBridge.resolveDebug(resourceName) then
         return
     end
 
@@ -21,5 +26,5 @@ function bridge.core.log(logType, msg, invoker)
         prefix = "^2[INFO]^0 "
     end
 
-    print("^5(^2" .. string.upper(invoker or GetInvokingResource() or GetCurrentResourceName()) .. "^5) ^4- " .. prefix .. msg)
+    print("^5(^2" .. string.upper(resourceName) .. "^5) ^4- " .. prefix .. tostring(msg))
 end
