@@ -9,6 +9,8 @@ end
 ---Cache the qbx_core exports handle for later calls.
 function provider:init()
     self.object = exports.qbx_core
+    self.__groupsFrame = nil
+    self.__groupsData = nil
 end
 
 ---Raw qbx_core player-data table.
@@ -33,31 +35,43 @@ function provider:getName()
     return (first .. " " .. last):gsub("^%s+", ""):gsub("%s+$", "")
 end
 
+---Share the framework export read between group accessors in a frame.
+---Raw getData(), money and identity reads keep their live behavior.
+---@return table data Current frame's framework data.
+function provider:__getGroupsData()
+    local frame = GetFrameCount()
+    if self.__groupsFrame ~= frame then
+        self.__groupsData = self.object:GetPlayerData()
+        self.__groupsFrame = frame
+    end
+    return self.__groupsData
+end
+
 ---Current job name.
 ---@return string
 function provider:getJob()
-    local job = self.object:GetPlayerData().job
+    local job = self:__getGroupsData().job
     return job and job.name or "unemployed"
 end
 
 ---Current job grade level.
 ---@return integer
 function provider:getJobRank()
-    local job = self.object:GetPlayerData().job
+    local job = self:__getGroupsData().job
     return tonumber(job and job.grade and job.grade.level) or 0
 end
 
 ---Current gang name.
 ---@return string
 function provider:getGang()
-    local gang = self.object:GetPlayerData().gang
+    local gang = self:__getGroupsData().gang
     return gang and gang.name or "none"
 end
 
 ---Current gang grade level.
 ---@return integer
 function provider:getGangRank()
-    local gang = self.object:GetPlayerData().gang
+    local gang = self:__getGroupsData().gang
     return tonumber(gang and gang.grade and gang.grade.level) or 0
 end
 
@@ -122,3 +136,28 @@ function provider:clearDeathStatus()
     TriggerServerEvent("hospital:server:SetDeathStatus", false)
     TriggerServerEvent("hospital:server:SetLaststandStatus", false)
 end
+
+local groupEvents = {
+    "QBCore:Client:OnPlayerLoaded", "QBCore:Client:OnPlayerUnload",
+    "QBCore:Player:SetPlayerData", "QBCore:Client:OnJobUpdate", "QBCore:Client:OnGangUpdate",
+    "qbx_core:client:onGroupUpdate", "qbx_core:client:onJobUpdate", "qbx_core:client:onGangUpdate",
+}
+for i = 1, #groupEvents do
+    RegisterNetEvent(groupEvents[i], function()
+        provider.__groupsFrame = nil
+        provider.__groupsData = nil
+    end)
+end
+
+AddEventHandler("onClientResourceStop", function(resource)
+    if resource == "qbx_core" then
+        provider.__groupsFrame = nil
+        provider.__groupsData = nil
+    end
+end)
+AddEventHandler("onClientResourceStart", function(resource)
+    if resource == "qbx_core" then
+        provider.__groupsFrame = nil
+        provider.__groupsData = nil
+    end
+end)
